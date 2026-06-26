@@ -1,0 +1,8 @@
+username,failed_login,successful_login,file_access,privilege_commands,usb_insert,network_connections,session_duration
+rahim,0,5,22,0,0,12,35
+karim,1,4,18,0,0,10,30
+hasan,0,6,25,1,0,15,45
+admin,12,1,350,15,1,180,240
+jony,0,5,21,0,0,11,33
+rakib,2,4,19,0,0,13,36
+sabbir,0,5,23,0,0,14,38
