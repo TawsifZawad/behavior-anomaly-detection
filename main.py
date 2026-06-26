@@ -1,5 +1,6 @@
 import platform
 
+from core.database import create_tables
 from collectors.windows_collector import WindowsCollector
 from collectors.ubuntu_collector import UbuntuCollector
 from collectors.mac_collector import MacCollector
@@ -20,5 +21,7 @@ elif os_name == "Darwin":
 
 else:
     raise Exception("Unsupported Operating System")
+
+create_tables()
 
 collector.collect()
