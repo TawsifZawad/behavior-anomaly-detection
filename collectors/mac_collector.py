@@ -1,10 +1,16 @@
-from core.logger import logger
+from collectors.base_collector import BaseCollector
 
 
-class MacCollector:
+class MacCollector(BaseCollector):
+
+    def __init__(self):
+        super().__init__("macOS")
 
     def collect(self):
+        self.start()
 
-        logger.info("macOS Collector Started")
+        print("Collecting macOS Logs...")
+
+        self.stop()
 
         return []

@@ -1,5 +1,7 @@
 import sqlite3
+
 from core.logger import logger
+from core.event import Event
 
 DATABASE_PATH = "database/behavior.db"
 
@@ -9,6 +11,7 @@ def connect():
 
 
 def create_tables():
+
     conn = connect()
     cursor = conn.cursor()
 
@@ -66,3 +69,45 @@ def create_tables():
     conn.close()
 
     logger.info("Database tables created successfully.")
+
+
+def insert_event(event: Event):
+    """
+    Insert a normalized event into the database.
+    """
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO events
+        (timestamp, username, os, event_type, source, ip, details)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        event.timestamp,
+        event.username,
+        event.os,
+        event.event_type,
+        event.source,
+        event.ip,
+        event.details
+    ))
+
+    conn.commit()
+    conn.close()
+
+    logger.info(f"Event inserted for user: {event.username}")
+
+
+def get_all_events():
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM events")
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows

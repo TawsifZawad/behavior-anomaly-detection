@@ -1,6 +1,6 @@
 import platform
 
-from core.database import create_tables
+from core.database import create_tables, get_all_events
 from collectors.windows_collector import WindowsCollector
 from collectors.ubuntu_collector import UbuntuCollector
 from collectors.mac_collector import MacCollector
@@ -25,3 +25,10 @@ else:
 create_tables()
 
 collector.collect()
+
+events = get_all_events()
+
+print("\n===== Events in Database =====")
+
+for event in events:
+    print(event)
