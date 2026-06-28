@@ -99,6 +99,19 @@ def insert_event(event: Event):
     logger.info(f"Event inserted for user: {event.username}")
 
 
+def clear_events():
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM events")
+
+    conn.commit()
+    conn.close()
+
+    logger.info("Events table cleared.")
+
+
 def get_all_events():
 
     conn = connect()

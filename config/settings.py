@@ -1,11 +1,12 @@
-import platform
+# Application Mode
 
-APP_NAME = "Behavior Anomaly Detection"
+MODE = "development"
 
-VERSION = "1.0"
+# Supported values:
+# development
+# production
 
-CURRENT_OS = platform.system()
 
-DATABASE = "database/behavior.db"
+# Development Dataset
 
-LOG_LEVEL = "INFO"
+SAMPLE_EVENT_FILE = "data/sample_events.json"

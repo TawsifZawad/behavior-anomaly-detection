@@ -1,6 +1,16 @@
 import platform
 
-from core.database import create_tables, get_all_events
+from config.settings import MODE, SAMPLE_EVENT_FILE
+
+from core.database import (
+    create_tables,
+    insert_event,
+    get_all_events,
+    clear_events
+)
+
+from utils.data_loader import load_sample_events
+
 from collectors.windows_collector import WindowsCollector
 from collectors.ubuntu_collector import UbuntuCollector
 from collectors.mac_collector import MacCollector
@@ -10,6 +20,8 @@ os_name = platform.system()
 
 print(f"Detected OS: {os_name}")
 
+
+# Select Collector
 if os_name == "Windows":
     collector = WindowsCollector()
 
@@ -22,10 +34,31 @@ elif os_name == "Darwin":
 else:
     raise Exception("Unsupported Operating System")
 
+
+# Create Database
 create_tables()
 
-collector.collect()
 
+# Development / Production Mode
+if MODE == "development":
+
+    print("Running in Development Mode...")
+
+    clear_events()
+
+    events = load_sample_events(SAMPLE_EVENT_FILE)
+
+    for event in events:
+        insert_event(event)
+
+else:
+
+    print("Running in Production Mode...")
+
+    collector.collect()
+
+
+# Show Database Contents
 events = get_all_events()
 
 print("\n===== Events in Database =====")
