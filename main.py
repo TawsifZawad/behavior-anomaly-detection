@@ -1,5 +1,7 @@
 import platform
 
+from feature_engine.extractor import FeatureExtractor
+from core.event import Event
 from config.settings import MODE, SAMPLE_EVENT_FILE
 
 from core.database import (
@@ -65,3 +67,30 @@ print("\n===== Events in Database =====")
 
 for event in events:
     print(event)
+
+
+print("\n===== Feature Extraction =====")
+
+rows = get_all_events()
+
+event_objects = []
+
+for row in rows:
+
+    event = Event(
+        timestamp=row[1],
+        username=row[2],
+        os=row[3],
+        event_type=row[4],
+        source=row[5],
+        ip=row[6],
+        details=row[7]
+    )
+
+    event_objects.append(event)
+
+extractor = FeatureExtractor()
+
+features = extractor.extract(event_objects)
+
+print(features)
