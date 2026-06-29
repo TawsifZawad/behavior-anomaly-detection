@@ -1,6 +1,6 @@
 from collections import Counter
 from datetime import datetime
-
+from models.feature_vector import FeatureVector
 
 class FeatureExtractor:
 
@@ -72,4 +72,12 @@ class FeatureExtractor:
 
         features["usb_insert"] = usb_insert
 
-        return features
+        return FeatureVector(
+    username=features["username"],
+    login_hour=features["login_hour"],
+    logout_hour=features["logout_hour"],
+    failed_login=features["failed_login"],
+    file_access=features["file_access"],
+    process_start=features["process_start"],
+    usb_insert=features["usb_insert"]
+)

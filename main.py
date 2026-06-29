@@ -1,5 +1,8 @@
 import platform
 
+from feature_engine.aggregator import EventAggregator
+from feature_engine.comparator import BehaviorComparator
+from feature_engine.baseline import BaselineManager
 from feature_engine.extractor import FeatureExtractor
 from core.event import Event
 from config.settings import MODE, SAMPLE_EVENT_FILE
@@ -89,8 +92,47 @@ for row in rows:
 
     event_objects.append(event)
 
+
+aggregator = EventAggregator()
+
+grouped_events = aggregator.group_by_user(event_objects)
+
 extractor = FeatureExtractor()
 
-features = extractor.extract(event_objects)
+feature_vectors = []
 
-print(features)
+for username, events in grouped_events.items():
+
+    features = extractor.extract(events)
+
+    feature_vectors.append(features)
+
+    print(features)
+
+
+print("\n===== Baseline Learning =====")
+
+baseline = BaselineManager()
+
+for features in feature_vectors:
+
+    baseline.save(features)
+
+
+print("\n===== Behavior Comparison =====")
+
+comparator = BehaviorComparator()
+
+for features in feature_vectors:
+
+    user = baseline.load(features.username)
+
+    comparison = comparator.compare(features, user)
+
+    print(f"\n===== {features.username} =====")
+
+    for feature, value in comparison.items():
+
+        print(f"\n{feature}")
+
+        print(value)
