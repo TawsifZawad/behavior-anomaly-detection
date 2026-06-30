@@ -1,0 +1,3 @@
+username,login_hour,logout_hour,failed_login,file_access,process_start,usb_insert
+Rahim,9.0,16.0,1,1,1,0
+Karim,10.0,18.0,1,1,1,0

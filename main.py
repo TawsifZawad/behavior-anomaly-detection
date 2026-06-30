@@ -4,9 +4,10 @@ from behavior_detection.risk_engine import RiskEngine
 from behavior_detection.analyzer import BehaviorAnalyzer
 
 from feature_engine.aggregator import EventAggregator
-from feature_engine.comparator import BehaviorComparator
-from feature_engine.baseline import BaselineManager
 from feature_engine.extractor import FeatureExtractor
+from feature_engine.baseline import BaselineManager
+from feature_engine.comparator import BehaviorComparator
+from feature_engine.dataset_builder import DatasetBuilder
 
 from core.event import Event
 
@@ -30,9 +31,9 @@ from collectors.ubuntu_collector import UbuntuCollector
 from collectors.mac_collector import MacCollector
 
 
-# ============================================================
-# Select Operating System Collector
-# ============================================================
+# =====================================================
+# Detect Operating System
+# =====================================================
 
 os_name = platform.system()
 
@@ -51,16 +52,21 @@ else:
     raise Exception("Unsupported Operating System")
 
 
-# ============================================================
+# =====================================================
 # Create Database
-# ============================================================
+# =====================================================
 
 create_tables()
 
+baseline = BaselineManager()
+aggregator = EventAggregator()
+extractor = FeatureExtractor()
+comparator = BehaviorComparator()
 
-# ============================================================
+
+# =====================================================
 # BASELINE TRAINING
-# ============================================================
+# =====================================================
 
 print("\n===== Baseline Training =====")
 
@@ -70,6 +76,7 @@ baseline_events = load_sample_events(BASELINE_EVENT_FILE)
 
 for event in baseline_events:
     insert_event(event)
+
 
 rows = get_all_events()
 
@@ -91,28 +98,49 @@ for row in rows:
 
     )
 
-aggregator = EventAggregator()
 
 baseline_groups = aggregator.group_by_user(baseline_event_objects)
 
-extractor = FeatureExtractor()
+baseline_feature_vectors = []
 
-baseline_manager = BaselineManager()
-
-print("\n===== Baseline Feature Extraction =====")
+print("\n===== Feature Extraction =====")
 
 for username, events in baseline_groups.items():
 
     features = extractor.extract(events)
 
+    baseline_feature_vectors.append(features)
+
     print(features)
 
-    baseline_manager.save(features)
+
+print("\n===== Baseline Learning =====")
+
+for features in baseline_feature_vectors:
+
+    baseline.save(features)
 
 
-# ============================================================
+# =====================================================
+# BUILD ML DATASET
+# =====================================================
+
+print("\n===== Building ML Dataset =====")
+
+builder = DatasetBuilder()
+
+builder.initialize()
+
+for features in baseline_feature_vectors:
+
+    builder.append(features)
+
+print("Dataset Updated.")
+
+
+# =====================================================
 # CURRENT SESSION
-# ============================================================
+# =====================================================
 
 print("\n===== Current Session =====")
 
@@ -153,9 +181,9 @@ for row in rows:
 
 current_groups = aggregator.group_by_user(current_event_objects)
 
-print("\n===== Current Feature Extraction =====")
-
 current_feature_vectors = []
+
+print("\n===== Current Feature Extraction =====")
 
 for username, events in current_groups.items():
 
@@ -166,21 +194,15 @@ for username, events in current_groups.items():
     print(features)
 
 
-# ============================================================
-# Behavior Comparison
-# ============================================================
+# =====================================================
+# BEHAVIOR COMPARISON
+# =====================================================
 
 print("\n===== Behavior Comparison =====")
 
-comparator = BehaviorComparator()
-
-risk_engine = RiskEngine()
-
-behavior_analyzer = BehaviorAnalyzer()
-
 for features in current_feature_vectors:
 
-    user = baseline_manager.load(features.username)
+    user = baseline.load(features.username)
 
     if user is None:
 
@@ -198,11 +220,19 @@ for features in current_feature_vectors:
 
         print(value)
 
+    # =================================================
+    # RISK ANALYSIS
+    # =================================================
+
     print("\n===== Risk Analysis =====")
+
+    risk_engine = RiskEngine()
 
     score, reasons = risk_engine.calculate(comparison)
 
-    level = behavior_analyzer.get_risk_level(score)
+    analyzer = BehaviorAnalyzer()
+
+    level = analyzer.get_risk_level(score)
 
     print(f"Risk Score : {score}")
 
@@ -216,4 +246,5 @@ for features in current_feature_vectors:
             print("-", reason)
 
     else:
+
         print("No abnormal behavior detected.")
