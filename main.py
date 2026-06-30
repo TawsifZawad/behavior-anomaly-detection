@@ -1,5 +1,8 @@
 import platform
 
+from ml.trainer import BehaviorTrainer
+from ml.predictor import BehaviorPredictor
+
 from behavior_detection.risk_engine import RiskEngine
 from behavior_detection.analyzer import BehaviorAnalyzer
 
@@ -135,6 +138,17 @@ generator.save()
 
 
 # =====================================================
+# TRAIN ML MODEL
+# =====================================================
+
+print("\n===== Training ML Model =====")
+
+trainer = BehaviorTrainer()
+
+trainer.train()
+
+
+# =====================================================
 # CURRENT SESSION
 # =====================================================
 
@@ -195,6 +209,8 @@ for username, events in current_groups.items():
 
 print("\n===== Behavior Comparison =====")
 
+predictor = BehaviorPredictor()
+
 for features in current_feature_vectors:
 
     user = baseline.load(features.username)
@@ -240,3 +256,14 @@ for features in current_feature_vectors:
     else:
 
         print("No abnormal behavior detected.")
+
+    # =====================================================
+    # ML Prediction
+    # =====================================================
+
+    print("\n===== ML Prediction =====")
+
+    label, confidence = predictor.predict(features)
+
+    print(f"Prediction : {label}")
+    print(f"Confidence : {confidence:.2f}%")
