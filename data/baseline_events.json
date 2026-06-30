@@ -1,0 +1,92 @@
+[
+    {
+        "timestamp": "2026-06-20 09:00:00",
+        "username": "Rahim",
+        "os": "Windows",
+        "event_type": "LOGIN_SUCCESS",
+        "source": "Security",
+        "ip": "192.168.1.10",
+        "details": "Morning login"
+    },
+    {
+        "timestamp": "2026-06-20 09:10:00",
+        "username": "Rahim",
+        "os": "Windows",
+        "event_type": "FILE_ACCESS",
+        "source": "Explorer",
+        "ip": "",
+        "details": "Opened project files"
+    },
+    {
+        "timestamp": "2026-06-20 09:40:00",
+        "username": "Rahim",
+        "os": "Windows",
+        "event_type": "PROCESS_START",
+        "source": "Process",
+        "ip": "",
+        "details": "Started VSCode"
+    },
+    {
+        "timestamp": "2026-06-20 16:55:00",
+        "username": "Rahim",
+        "os": "Windows",
+        "event_type": "LOGOUT",
+        "source": "Security",
+        "ip": "",
+        "details": "End of work"
+    },
+    {
+        "timestamp": "2026-06-21 03:15:00",
+        "username": "Rahim",
+        "os": "Windows",
+        "event_type": "LOGIN_FAILED",
+        "source": "Security",
+        "ip": "203.0.113.50",
+        "details": "Unexpected failed login"
+    },
+    {
+    "timestamp": "2026-06-20 10:00:00",
+    "username": "Karim",
+    "os": "Windows",
+    "event_type": "LOGIN_SUCCESS",
+    "source": "Security",
+    "ip": "192.168.1.20",
+    "details": "Morning login"
+},
+{
+    "timestamp": "2026-06-20 10:20:00",
+    "username": "Karim",
+    "os": "Windows",
+    "event_type": "FILE_ACCESS",
+    "source": "Explorer",
+    "ip": "",
+    "details": "Opened documents"
+},
+{
+    "timestamp": "2026-06-20 10:45:00",
+    "username": "Karim",
+    "os": "Windows",
+    "event_type": "PROCESS_START",
+    "source": "Process",
+    "ip": "",
+    "details": "Started Chrome"
+},
+{
+    "timestamp": "2026-06-20 18:00:00",
+    "username": "Karim",
+    "os": "Windows",
+    "event_type": "LOGOUT",
+    "source": "Security",
+    "ip": "",
+    "details": "End of work"
+},
+{
+    "timestamp": "2026-06-20 18:10:00",
+    "username": "Karim",
+    "os": "Windows",
+    "event_type": "LOGIN_FAILED",
+    "source": "Security",
+    "ip": "198.51.100.20",
+    "details": "Failed login attempt"
+}
+]   

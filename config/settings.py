@@ -2,11 +2,12 @@
 
 MODE = "development"
 
-# Supported values:
-# development
-# production
+
+# Training Dataset
+
+BASELINE_EVENT_FILE = "data/baseline_events.json"
 
 
-# Development Dataset
+# Current Dataset
 
-SAMPLE_EVENT_FILE = "data/sample_events.json"
+CURRENT_EVENT_FILE = "data/current_events.json"
