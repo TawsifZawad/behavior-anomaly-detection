@@ -7,7 +7,7 @@ from feature_engine.aggregator import EventAggregator
 from feature_engine.extractor import FeatureExtractor
 from feature_engine.baseline import BaselineManager
 from feature_engine.comparator import BehaviorComparator
-from feature_engine.dataset_builder import DatasetBuilder
+from feature_engine.dataset_generator import DatasetGenerator
 
 from core.event import Event
 
@@ -53,14 +53,14 @@ else:
 
 
 # =====================================================
-# Create Database
+# Initialize
 # =====================================================
 
 create_tables()
 
-baseline = BaselineManager()
 aggregator = EventAggregator()
 extractor = FeatureExtractor()
+baseline = BaselineManager()
 comparator = BehaviorComparator()
 
 
@@ -76,7 +76,6 @@ baseline_events = load_sample_events(BASELINE_EVENT_FILE)
 
 for event in baseline_events:
     insert_event(event)
-
 
 rows = get_all_events()
 
@@ -97,7 +96,6 @@ for row in rows:
         )
 
     )
-
 
 baseline_groups = aggregator.group_by_user(baseline_event_objects)
 
@@ -127,15 +125,13 @@ for features in baseline_feature_vectors:
 
 print("\n===== Building ML Dataset =====")
 
-builder = DatasetBuilder()
-
-builder.initialize()
+generator = DatasetGenerator()
 
 for features in baseline_feature_vectors:
 
-    builder.append(features)
+    generator.generate(features, samples=200)
 
-print("Dataset Updated.")
+generator.save()
 
 
 # =====================================================
@@ -151,12 +147,12 @@ if MODE == "development":
     current_events = load_sample_events(CURRENT_EVENT_FILE)
 
     for event in current_events:
+
         insert_event(event)
 
 else:
 
     collector.collect()
-
 
 rows = get_all_events()
 
@@ -177,7 +173,6 @@ for row in rows:
         )
 
     )
-
 
 current_groups = aggregator.group_by_user(current_event_objects)
 
@@ -220,10 +215,6 @@ for features in current_feature_vectors:
 
         print(value)
 
-    # =================================================
-    # RISK ANALYSIS
-    # =================================================
-
     print("\n===== Risk Analysis =====")
 
     risk_engine = RiskEngine()
@@ -243,6 +234,7 @@ for features in current_feature_vectors:
     if reasons:
 
         for reason in reasons:
+
             print("-", reason)
 
     else:
