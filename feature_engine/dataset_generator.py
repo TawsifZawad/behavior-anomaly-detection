@@ -71,10 +71,10 @@ class DatasetGenerator:
                 random.randint(0, 4),      # login_hour
                 random.randint(0, 5),      # logout_hour
                 random.randint(4, 8),      # failed_login
-                random.randint(0, 1),      # process_start
+                random.randint(0, 3),      # process_start
                 1,                         # usb_insert
                 1,                         # usb_executable_run
-                random.randint(0, 1),      # file_access
+                random.randint(0, 3),      # file_access
                 1                          # label
             ])
 

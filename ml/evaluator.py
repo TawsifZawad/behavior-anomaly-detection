@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 
 from sklearn.metrics import (
@@ -5,13 +6,22 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     f1_score,
-    confusion_matrix
+    confusion_matrix,
+    classification_report
 )
-
-import joblib
 
 
 class ModelEvaluator:
+
+    FEATURES = [
+        "login_hour",
+        "logout_hour",
+        "failed_login",
+        "process_start",
+        "usb_insert",
+        "usb_executable_run",
+        "file_access"
+    ]
 
     def evaluate(
         self,
@@ -22,51 +32,40 @@ class ModelEvaluator:
         # Load dataset
         data = pd.read_csv(dataset_path)
 
-        # Ground truth labels
+        # Ground truth
         y_true = data["label"]
 
-        # Feature columns
-        X = data.drop(
-            columns=["username", "label"]
-        )
+        # Use the same feature order as trainer.py
+        X = data[self.FEATURES]
 
-        # Load model
+        # Load trained model
         model = joblib.load(model_path)
 
-        # Isolation Forest prediction
+        # Predict
         prediction = model.predict(X)
 
-        # Convert prediction
-        # 1  -> Normal (0)
-        # -1 -> Anomaly (1)
-
-        y_pred = []
-
-        for value in prediction:
-
-            if value == -1:
-                y_pred.append(1)
-            else:
-                y_pred.append(0)
+        # Convert Isolation Forest output
+        y_pred = [
+            1 if value == -1 else 0
+            for value in prediction
+        ]
 
         print("\n===== Model Evaluation =====")
 
-        print(
-            f"Accuracy  : {accuracy_score(y_true, y_pred):.4f}"
-        )
-
-        print(
-            f"Precision : {precision_score(y_true, y_pred, zero_division=0):.4f}"
-        )
-
-        print(
-            f"Recall    : {recall_score(y_true, y_pred, zero_division=0):.4f}"
-        )
-
-        print(
-            f"F1 Score  : {f1_score(y_true, y_pred, zero_division=0):.4f}"
-        )
+        print(f"Accuracy  : {accuracy_score(y_true, y_pred):.4f}")
+        print(f"Precision : {precision_score(y_true, y_pred, zero_division=0):.4f}")
+        print(f"Recall    : {recall_score(y_true, y_pred, zero_division=0):.4f}")
+        print(f"F1 Score  : {f1_score(y_true, y_pred, zero_division=0):.4f}")
 
         print("\nConfusion Matrix")
-
         print(confusion_matrix(y_true, y_pred))
+
+        print("\nClassification Report")
+        print(
+            classification_report(
+                y_true,
+                y_pred,
+                target_names=["NORMAL", "ANOMALY"],
+                zero_division=0
+            )
+        )

@@ -16,12 +16,18 @@ class AlertManager:
         risk_level,
         ml_prediction,
         final_status,
-        reasons
+        reasons,
+        correlations=None
     ):
+
+        if correlations is None:
+            correlations = []
+
+        timestamp = datetime.now()
 
         alert = {
 
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": timestamp.isoformat(),
 
             "username": username,
 
@@ -33,11 +39,16 @@ class AlertManager:
 
             "final_status": final_status,
 
-            "reasons": reasons
+            "reasons": reasons,
+
+            "correlations": correlations
 
         }
 
-        filename = f"alerts/{username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        filename = (
+            f"alerts/"
+            f"{username}_{timestamp.strftime('%Y%m%d_%H%M%S')}.json"
+        )
 
         with open(
             filename,
@@ -52,5 +63,4 @@ class AlertManager:
             )
 
         print("\nAlert saved.")
-
         print(filename)

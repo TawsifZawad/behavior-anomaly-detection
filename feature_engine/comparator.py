@@ -1,5 +1,19 @@
 class BehaviorComparator:
 
+    THRESHOLDS = {
+        "login_hour": 1,
+        "logout_hour": 1,
+
+        "failed_login": 0,
+
+        "process_start": 1,
+
+        "usb_insert": 0,
+        "usb_executable_run": 0,
+
+        "file_access": 1
+    }
+
     def compare(self, current, baseline):
 
         """
@@ -26,9 +40,11 @@ class BehaviorComparator:
 
             difference = current_value - baseline_value
 
+            threshold = self.THRESHOLDS.get(feature, 0)
+
             status = "normal"
 
-            if difference != 0:
+            if abs(difference) > threshold:
                 status = "changed"
 
             result[feature] = {

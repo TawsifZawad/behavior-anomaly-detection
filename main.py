@@ -234,7 +234,10 @@ for features in current_feature_vectors:
         continue
 
     comparison = comparator.compare(features, user)
-    correlations = correlation_engine.analyze(comparison)
+    correlations = correlation_engine.analyze(
+        comparison,
+        features
+    )
 
     print(f"\n===== {features.username} =====")
 
@@ -246,13 +249,13 @@ for features in current_feature_vectors:
 
     if correlations:
 
-    print("\n===== Correlation Analysis =====")
+        print("\n===== Correlation Analysis =====")
 
-    for item in correlations:
+        for item in correlations:
 
-        print(f"Threat      : {item['name']}")
-        print(f"Severity    : {item['severity']}")
-        print(f"Description : {item['description']}")
+            print(f"Threat      : {item['name']}")
+            print(f"Severity    : {item['severity']}")
+            print(f"Description : {item['description']}")
 
     # =====================================================
     # Risk Analysis
@@ -303,13 +306,15 @@ for features in current_feature_vectors:
 
     final_status = decision_engine.decide(
         score,
-        label
+        label,
+        correlations
     )
 
     print(f"Final Status : {final_status}")
 
     if final_status in ["CRITICAL", "SUSPICIOUS"]:
 
+       
         alert_manager.create_alert(
 
             username=features.username,
@@ -322,9 +327,11 @@ for features in current_feature_vectors:
 
             final_status=final_status,
 
-            reasons=reasons
+            reasons=reasons,
 
+            correlations=correlations
     )
+        
 
     if final_status == "CRITICAL":
 

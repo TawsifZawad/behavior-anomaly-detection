@@ -1,5 +1,15 @@
 class RiskEngine:
 
+    RISK_RULES = {
+        "login_hour": (20, "Unusual login hour"),
+        "logout_hour": (10, "Unusual logout hour"),
+        "failed_login": (40, "Failed login attempts"),
+        "process_start": (10, "Different process activity"),
+        "file_access": (10, "Different file access activity"),
+        "usb_insert": (20, "USB activity detected"),
+        "usb_executable_run": (40, "Executable launched from USB")
+    }
+
     def calculate(self, comparison):
 
         """
@@ -8,7 +18,6 @@ class RiskEngine:
         """
 
         score = 0
-
         reasons = []
 
         for feature, value in comparison.items():
@@ -16,32 +25,12 @@ class RiskEngine:
             if value["status"] == "normal":
                 continue
 
-            if feature == "login_hour":
-                score += 20
-                reasons.append("Unusual login hour")
+            if feature not in self.RISK_RULES:
+                continue
 
-            elif feature == "logout_hour":
-                score += 10
-                reasons.append("Unusual logout hour")
+            risk_score, reason = self.RISK_RULES[feature]
 
-            elif feature == "failed_login":
-                score += 40
-                reasons.append("Failed login attempts")
-
-            elif feature == "process_start":
-                score += 10
-                reasons.append("Different process activity")
-
-            elif feature == "file_access":
-                score += 10
-                reasons.append("Different file access activity")
-
-            elif feature == "usb_insert":
-                score += 20
-                reasons.append("USB activity detected")
-
-            elif feature == "usb_executable_run":
-                score += 40
-                reasons.append("Executable launched from USB")
+            score += risk_score
+            reasons.append(reason)
 
         return score, reasons

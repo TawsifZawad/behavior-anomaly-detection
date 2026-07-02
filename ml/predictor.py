@@ -4,28 +4,34 @@ import pandas as pd
 
 class BehaviorPredictor:
 
+    FEATURES = [
+        "login_hour",
+        "logout_hour",
+        "failed_login",
+        "process_start",
+        "usb_insert",
+        "usb_executable_run",
+        "file_access"
+    ]
+
     def __init__(self):
 
         self.model = joblib.load("ml/model.joblib")
 
     def predict(self, feature_vector):
 
-        # Feature order MUST match trainer.py
-        df = pd.DataFrame([{
-            "login_hour": feature_vector.login_hour,
-            "logout_hour": feature_vector.logout_hour,
-            "failed_login": feature_vector.failed_login,
-            "process_start": feature_vector.process_start,
-            "usb_insert": feature_vector.usb_insert,
-            "usb_executable_run": feature_vector.usb_executable_run,
-            "file_access": feature_vector.file_access
-        }])
+        values = {
+            feature: getattr(feature_vector, feature)
+            for feature in self.FEATURES
+        }
+
+        df = pd.DataFrame([values])
 
         prediction = self.model.predict(df)[0]
 
         score = self.model.decision_function(df)[0]
 
-        # Convert score to 0-100 confidence
+        # Convert score to 0–100 confidence
         confidence = (score + 0.5) * 100
         confidence = max(0, min(confidence, 100))
 
@@ -34,4 +40,4 @@ class BehaviorPredictor:
         else:
             label = "NORMAL"
 
-        return label, confidence
+        return label, round(confidence, 2)

@@ -6,25 +6,38 @@ class DecisionEngine:
         ml_prediction,
         correlations=None
     ):
+
         if correlations is None:
             correlations = []
 
-        # Correlation rules have highest priority
-        if correlations:
+        # =====================================
+        # Correlation Decision
+        # =====================================
+
+        severities = {
+            item["severity"]
+            for item in correlations
+        }
+
+        if "CRITICAL" in severities:
             return "CRITICAL"
 
-        # Both systems agree
+        if "HIGH" in severities:
+            return "SUSPICIOUS"
+
+        # =====================================
+        # Hybrid Decision
+        # =====================================
+
         if risk_score >= 70 and ml_prediction == "ANOMALY":
             return "CRITICAL"
 
         if risk_score < 30 and ml_prediction == "NORMAL":
             return "SAFE"
 
-        # Only rule engine thinks suspicious
         if risk_score >= 70:
             return "SUSPICIOUS"
 
-        # Only ML thinks suspicious
         if ml_prediction == "ANOMALY":
             return "REVIEW"
 

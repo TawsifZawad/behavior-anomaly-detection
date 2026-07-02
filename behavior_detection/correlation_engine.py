@@ -1,14 +1,23 @@
 class CorrelationEngine:
 
-    def analyze(self, comparison):
+    def analyze(self, comparison, features):
+
+        """
+        Detect attack chains by correlating
+        multiple suspicious behaviors.
+        """
 
         correlations = []
 
-        usb_insert = comparison["usb_insert"]["status"] == "changed"
+        # =====================================================
+        # USB Malware
+        # =====================================================
 
-        usb_exe = comparison["usb_executable_run"]["status"] == "changed"
-
-        if usb_insert and usb_exe:
+        if (
+            features.usb_insert > 0
+            and
+            features.usb_executable_run > 0
+        ):
 
             correlations.append({
 
@@ -16,10 +25,29 @@ class CorrelationEngine:
 
                 "severity": "CRITICAL",
 
-                "description": (
+                "description":
                     "USB device inserted and executable launched."
-                )
 
             })
+
+        # =====================================================
+        # Future Rules
+        # =====================================================
+        #
+        # Internet Download
+        # PowerShell
+        # Certutil
+        # Bitsadmin
+        # Privilege Escalation
+        # Curl -> Bash
+        # Wget -> chmod
+        # Nmap -> Hydra
+        # SSH Brute Force
+        # Launchctl
+        # Osascript
+        #
+        # Add here later.
+        #
+        # =====================================================
 
         return correlations
