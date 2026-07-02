@@ -17,6 +17,7 @@ class BehaviorPredictor:
             "failed_login": feature_vector.failed_login,
             "process_start": feature_vector.process_start,
             "usb_insert": feature_vector.usb_insert,
+            "usb_executable_run": feature_vector.usb_executable_run,
             "file_access": feature_vector.file_access
         }])
 

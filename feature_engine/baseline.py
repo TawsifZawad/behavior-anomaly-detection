@@ -17,10 +17,11 @@ class BaselineManager:
             avg_failed_login,
             avg_process,
             avg_usb,
+            avg_usb_executable_run,
             avg_files
         )
 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             features.username,
@@ -29,6 +30,7 @@ class BaselineManager:
             features.failed_login,
             features.process_start,
             features.usb_insert,
+            features.usb_executable_run,
             features.file_access
         ))
 
@@ -50,5 +52,7 @@ class BaselineManager:
         row = cursor.fetchone()
 
         conn.close()
+
+        print(row)
 
         return row

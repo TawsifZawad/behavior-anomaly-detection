@@ -30,6 +30,8 @@ class FeatureExtractor:
 
         usb_insert = 0
 
+        usb_executable_run = 0
+
         logout_hours = []
 
         for event in events:
@@ -50,6 +52,9 @@ class FeatureExtractor:
 
             elif event.event_type == "USB_INSERT":
                 usb_insert += 1
+
+            elif event.event_type == "USB_EXECUTABLE_RUN":
+                usb_executable_run += 1
 
             elif event.event_type == "LOGOUT":
                 logout_hours.append(event_time.hour)
@@ -72,6 +77,8 @@ class FeatureExtractor:
 
         features["usb_insert"] = usb_insert
 
+        features["usb_executable_run"] = usb_executable_run
+
         return FeatureVector(
     username=features["username"],
     login_hour=features["login_hour"],
@@ -79,5 +86,6 @@ class FeatureExtractor:
     failed_login=features["failed_login"],
     file_access=features["file_access"],
     process_start=features["process_start"],
-    usb_insert=features["usb_insert"]
+    usb_insert=features["usb_insert"],
+    usb_executable_run=features["usb_executable_run"]
 )

@@ -14,7 +14,8 @@ class BehaviorComparator:
             "failed_login": 3,
             "process_start": 4,
             "usb_insert": 5,
-            "file_access": 6
+            "usb_executable_run": 6,
+            "file_access": 7
         }
 
         for feature, index in mapping.items():

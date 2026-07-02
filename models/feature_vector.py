@@ -8,7 +8,8 @@ class FeatureVector:
         failed_login,
         file_access,
         process_start,
-        usb_insert
+        usb_insert,
+        usb_executable_run
     ):
 
         self.username = username
@@ -25,6 +26,8 @@ class FeatureVector:
 
         self.usb_insert = usb_insert
 
+        self.usb_executable_run = usb_executable_run
+
     def to_dict(self):
 
         return {
@@ -34,7 +37,8 @@ class FeatureVector:
             "failed_login": self.failed_login,
             "file_access": self.file_access,
             "process_start": self.process_start,
-            "usb_insert": self.usb_insert
+            "usb_insert": self.usb_insert,
+            "usb_executable_run": self.usb_executable_run
         }
 
     def __str__(self):

@@ -49,6 +49,7 @@ def create_tables():
         avg_failed_login REAL,
         avg_process REAL,
         avg_usb REAL,
+        avg_usb_executable_run REAL,
         avg_files REAL
     )
     """)

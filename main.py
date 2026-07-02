@@ -1,5 +1,6 @@
 import platform
 
+from ml.evaluator import ModelEvaluator
 from ml.trainer import BehaviorTrainer
 from ml.predictor import BehaviorPredictor
 
@@ -331,3 +332,14 @@ for features in current_feature_vectors:
     else:
 
         print("Action : Normal user")
+
+
+    # =====================================================
+    # MODEL EVALUATION
+    # =====================================================
+
+    print("\n===== Evaluating ML Model =====")
+
+    evaluator = ModelEvaluator()
+
+    evaluator.evaluate()

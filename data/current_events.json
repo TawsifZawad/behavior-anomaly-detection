@@ -18,6 +18,15 @@
     "details": "Unknown USB connected"
 },
 {
+    "timestamp": "2026-06-21T02:20:00",
+    "username": "Rahim",
+    "os": "Windows",
+    "event_type": "USB_EXECUTABLE_RUN",
+    "source": "USB",
+    "ip": "",
+    "details": "Executed setup.exe from removable drive"
+},
+{
     "timestamp": "2026-06-21 02:40:00",
     "username": "Rahim",
     "os": "Windows",
