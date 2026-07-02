@@ -1,0 +1,16 @@
+{
+    "timestamp": "2026-07-02T14:06:39.157660",
+    "username": "Rahim",
+    "risk_score": 110,
+    "risk_level": "HIGH",
+    "ml_prediction": "ANOMALY",
+    "final_status": "CRITICAL",
+    "reasons": [
+        "Unusual login hour",
+        "Unusual logout hour",
+        "Failed login attempts",
+        "Different process activity",
+        "USB activity detected",
+        "Different file access activity"
+    ]
+}

@@ -3,6 +3,7 @@ import platform
 from ml.trainer import BehaviorTrainer
 from ml.predictor import BehaviorPredictor
 
+from behavior_detection.alert_manager import AlertManager
 from behavior_detection.decision_engine import DecisionEngine
 from behavior_detection.risk_engine import RiskEngine
 from behavior_detection.analyzer import BehaviorAnalyzer
@@ -214,7 +215,10 @@ for username, events in current_groups.items():
 print("\n===== Behavior Comparison =====")
 
 predictor = BehaviorPredictor()
+
 decision_engine = DecisionEngine()
+
+alert_manager = AlertManager()
 
 for features in current_feature_vectors:
 
@@ -289,6 +293,24 @@ for features in current_feature_vectors:
     )
 
     print(f"Final Status : {final_status}")
+
+    if final_status in ["CRITICAL", "SUSPICIOUS"]:
+
+        alert_manager.create_alert(
+
+            username=features.username,
+
+            risk_score=score,
+
+            risk_level=level,
+
+            ml_prediction=label,
+
+            final_status=final_status,
+
+            reasons=reasons
+
+    )
 
     if final_status == "CRITICAL":
 
