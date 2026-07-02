@@ -3,6 +3,7 @@ import platform
 from ml.trainer import BehaviorTrainer
 from ml.predictor import BehaviorPredictor
 
+from behavior_detection.decision_engine import DecisionEngine
 from behavior_detection.risk_engine import RiskEngine
 from behavior_detection.analyzer import BehaviorAnalyzer
 
@@ -87,7 +88,6 @@ baseline_event_objects = []
 for row in rows:
 
     baseline_event_objects.append(
-
         Event(
             timestamp=row[1],
             username=row[2],
@@ -97,10 +97,11 @@ for row in rows:
             ip=row[6],
             details=row[7]
         )
-
     )
 
-baseline_groups = aggregator.group_by_user(baseline_event_objects)
+baseline_groups = aggregator.group_by_user(
+    baseline_event_objects
+)
 
 baseline_feature_vectors = []
 
@@ -132,7 +133,10 @@ generator = DatasetGenerator()
 
 for features in baseline_feature_vectors:
 
-    generator.generate(features, samples=200)
+    generator.generate(
+        features,
+        samples=200
+    )
 
 generator.save()
 
@@ -210,6 +214,7 @@ for username, events in current_groups.items():
 print("\n===== Behavior Comparison =====")
 
 predictor = BehaviorPredictor()
+decision_engine = DecisionEngine()
 
 for features in current_feature_vectors:
 
@@ -230,6 +235,10 @@ for features in current_feature_vectors:
         print(f"\n{feature}")
 
         print(value)
+
+    # =====================================================
+    # Risk Analysis
+    # =====================================================
 
     print("\n===== Risk Analysis =====")
 
@@ -267,3 +276,36 @@ for features in current_feature_vectors:
 
     print(f"Prediction : {label}")
     print(f"Confidence : {confidence:.2f}%")
+
+    # =====================================================
+    # Final Decision
+    # =====================================================
+
+    print("\n===== Final Decision =====")
+
+    final_status = decision_engine.decide(
+        score,
+        label
+    )
+
+    print(f"Final Status : {final_status}")
+
+    if final_status == "CRITICAL":
+
+        print("Action : Immediate Investigation Required")
+
+    elif final_status == "SUSPICIOUS":
+
+        print("Action : Rule Engine detected suspicious behavior")
+
+    elif final_status == "REVIEW":
+
+        print("Action : Review recommended by ML model")
+
+    elif final_status == "SAFE":
+
+        print("Action : No action required")
+
+    else:
+
+        print("Action : Normal user")
