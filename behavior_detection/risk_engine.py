@@ -40,4 +40,8 @@ class RiskEngine:
                 score += 20
                 reasons.append("USB activity detected")
 
+            elif feature == "usb_executable_run":
+                score += 40
+                reasons.append("Executable launched from USB")
+
         return score, reasons

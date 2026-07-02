@@ -22,9 +22,9 @@ class BehaviorTrainer:
 
         # Train model
         model = IsolationForest(
-            n_estimators=100,
-            contamination=0.05,
-            random_state=42
+        n_estimators=200,
+        contamination=0.33,
+        random_state=42
         )
 
         model.fit(X)

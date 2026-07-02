@@ -4,6 +4,7 @@ from ml.evaluator import ModelEvaluator
 from ml.trainer import BehaviorTrainer
 from ml.predictor import BehaviorPredictor
 
+from behavior_detection.correlation_engine import CorrelationEngine
 from behavior_detection.alert_manager import AlertManager
 from behavior_detection.decision_engine import DecisionEngine
 from behavior_detection.risk_engine import RiskEngine
@@ -68,6 +69,7 @@ aggregator = EventAggregator()
 extractor = FeatureExtractor()
 baseline = BaselineManager()
 comparator = BehaviorComparator()
+correlation_engine = CorrelationEngine()
 
 
 # =====================================================
@@ -232,6 +234,7 @@ for features in current_feature_vectors:
         continue
 
     comparison = comparator.compare(features, user)
+    correlations = correlation_engine.analyze(comparison)
 
     print(f"\n===== {features.username} =====")
 
@@ -240,6 +243,16 @@ for features in current_feature_vectors:
         print(f"\n{feature}")
 
         print(value)
+
+    if correlations:
+
+    print("\n===== Correlation Analysis =====")
+
+    for item in correlations:
+
+        print(f"Threat      : {item['name']}")
+        print(f"Severity    : {item['severity']}")
+        print(f"Description : {item['description']}")
 
     # =====================================================
     # Risk Analysis

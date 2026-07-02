@@ -3,8 +3,15 @@ class DecisionEngine:
     def decide(
         self,
         risk_score,
-        ml_prediction
+        ml_prediction,
+        correlations=None
     ):
+        if correlations is None:
+            correlations = []
+
+        # Correlation rules have highest priority
+        if correlations:
+            return "CRITICAL"
 
         # Both systems agree
         if risk_score >= 70 and ml_prediction == "ANOMALY":
