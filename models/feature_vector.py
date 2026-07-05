@@ -1,102 +1,93 @@
+from dataclasses import dataclass
+
+
+@dataclass
 class FeatureVector:
 
-    def __init__(
-        self,
-        username,
+    # ==========================
+    # Identity
+    # ==========================
 
-        login_hour,
-        logout_hour,
+    username: str
 
-        failed_login,
+    # ==========================
+    # Authentication
+    # ==========================
 
-        process_start,
-        file_access,
+    login_hour: float | None
+    logout_hour: float | None
+    failed_login: int
 
-        usb_insert,
-        usb_executable_run,
+    # ==========================
+    # Process Activity
+    # ==========================
 
-        internet_download,
-        downloaded_executable_run,
+    process_start: int
 
-        powershell,
-        encoded_powershell,
+    # ==========================
+    # File Activity
+    # ==========================
 
-        certutil,
-        bitsadmin,
-        rundll32,
-        regsvr32,
-        mshta,
+    file_access: int
 
-        privilege_escalation,
+    # ==========================
+    # Device Activity
+    # ==========================
 
-        sudo,
-        sudo_su,
-        chmod_exec,
+    usb_insert: int
+    usb_executable_run: int
 
-        curl,
-        wget,
-        curl_bash,
+    # ==========================
+    # Download Activity
+    # ==========================
 
-        netcat,
-        nmap,
-        hydra,
+    internet_download: int
+    download_then_execute: int
 
-        ssh_bruteforce,
+    # ==========================
+    # PowerShell / Script
+    # ==========================
 
-        osascript,
-        launchctl,
-        bash_shell,
-        zsh_shell
-    ):
+    powershell_started: int
+    encoded_command: int
+    execution_policy_bypass: int
 
-        self.username = username
+    # ==========================
+    # Suspicious Execution
+    # ==========================
 
-        self.login_hour = login_hour
-        self.logout_hour = logout_hour
+    execution_from_temp: int
+    unsigned_binary: int
+    hidden_process: int
 
-        self.failed_login = failed_login
+    # ==========================
+    # LOLBins (Windows)
+    # ==========================
 
-        self.process_start = process_start
-        self.file_access = file_access
+    certutil_download: int
+    bitsadmin_download: int
+    rundll32_network: int
+    regsvr32_remote_script: int
+    mshta_remote_script: int
 
-        self.usb_insert = usb_insert
-        self.usb_executable_run = usb_executable_run
+    # ==========================
+    # Privilege Escalation
+    # ==========================
 
-        self.internet_download = internet_download
-        self.downloaded_executable_run = downloaded_executable_run
+    privilege_escalation: int
+    sudo_abuse: int
 
-        self.powershell = powershell
-        self.encoded_powershell = encoded_powershell
+    # ==========================
+    # Reconnaissance
+    # ==========================
 
-        self.certutil = certutil
-        self.bitsadmin = bitsadmin
-        self.rundll32 = rundll32
-        self.regsvr32 = regsvr32
-        self.mshta = mshta
+    nmap_scan: int
+    hydra_bruteforce: int
+    ssh_bruteforce: int
 
-        self.privilege_escalation = privilege_escalation
+    # ==========================
+    # Persistence
+    # ==========================
 
-        self.sudo = sudo
-        self.sudo_su = sudo_su
-        self.chmod_exec = chmod_exec
-
-        self.curl = curl
-        self.wget = wget
-        self.curl_bash = curl_bash
-
-        self.netcat = netcat
-        self.nmap = nmap
-        self.hydra = hydra
-
-        self.ssh_bruteforce = ssh_bruteforce
-
-        self.osascript = osascript
-        self.launchctl = launchctl
-        self.bash_shell = bash_shell
-        self.zsh_shell = zsh_shell
-
-    def to_dict(self):
-        return self.__dict__
-
-    def __str__(self):
-        return str(self.to_dict())
+    persistence_created: int
+    osascript_shell: int

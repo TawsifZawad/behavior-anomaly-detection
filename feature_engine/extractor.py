@@ -26,37 +26,31 @@ class FeatureExtractor:
         usb_executable_run = 0
 
         internet_download = 0
-        downloaded_executable_run = 0
+        download_then_execute = 0
 
-        powershell = 0
-        encoded_powershell = 0
+        powershell_started = 0
+        encoded_command = 0
+        execution_policy_bypass = 0
 
-        certutil = 0
-        bitsadmin = 0
-        rundll32 = 0
-        regsvr32 = 0
-        mshta = 0
+        execution_from_temp = 0
+        unsigned_binary = 0
+        hidden_process = 0
+
+        certutil_download = 0
+        bitsadmin_download = 0
+        rundll32_network = 0
+        regsvr32_remote_script = 0
+        mshta_remote_script = 0
 
         privilege_escalation = 0
+        sudo_abuse = 0
 
-        sudo = 0
-        sudo_su = 0
-        chmod_exec = 0
-
-        curl = 0
-        wget = 0
-        curl_bash = 0
-
-        netcat = 0
-        nmap = 0
-        hydra = 0
-
+        nmap_scan = 0
+        hydra_bruteforce = 0
         ssh_bruteforce = 0
 
-        osascript = 0
-        launchctl = 0
-        bash_shell = 0
-        zsh_shell = 0
+        persistence_created = 0
+        osascript_shell = 0
 
         for event in events:
 
@@ -83,74 +77,62 @@ class FeatureExtractor:
             elif event.event_type == "INTERNET_DOWNLOAD":
                 internet_download += 1
 
-            elif event.event_type == "DOWNLOADED_EXECUTABLE_RUN":
-                downloaded_executable_run += 1
+            elif event.event_type == "DOWNLOAD_EXECUTE":
+                download_then_execute += 1
 
-            elif event.event_type == "POWERSHELL":
-                powershell += 1
+            elif event.event_type == "POWERSHELL_START":
+                powershell_started += 1
 
-            elif event.event_type == "ENCODED_POWERSHELL":
-                encoded_powershell += 1
+            elif event.event_type == "ENCODED_COMMAND":
+                encoded_command += 1
 
-            elif event.event_type == "CERTUTIL":
-                certutil += 1
+            elif event.event_type == "EXECUTION_POLICY_BYPASS":
+                execution_policy_bypass += 1
 
-            elif event.event_type == "BITSADMIN":
-                bitsadmin += 1
+            elif event.event_type == "EXECUTION_FROM_TEMP":
+                execution_from_temp += 1
 
-            elif event.event_type == "RUNDLL32":
-                rundll32 += 1
+            elif event.event_type == "UNSIGNED_BINARY":
+                unsigned_binary += 1
 
-            elif event.event_type == "REGSVR32":
-                regsvr32 += 1
+            elif event.event_type == "HIDDEN_PROCESS":
+                hidden_process += 1
 
-            elif event.event_type == "MSHTA":
-                mshta += 1
+            elif event.event_type == "CERTUTIL_DOWNLOAD":
+                certutil_download += 1
+
+            elif event.event_type == "BITSADMIN_DOWNLOAD":
+                bitsadmin_download += 1
+
+            elif event.event_type == "RUNDLL32_NETWORK":
+                rundll32_network += 1
+
+            elif event.event_type == "REGSVR32_REMOTE_SCRIPT":
+                regsvr32_remote_script += 1
+
+            elif event.event_type == "MSHTA_REMOTE_SCRIPT":
+                mshta_remote_script += 1
 
             elif event.event_type == "PRIVILEGE_ESCALATION":
                 privilege_escalation += 1
 
-            elif event.event_type == "SUDO":
-                sudo += 1
+            elif event.event_type == "SUDO_ABUSE":
+                sudo_abuse += 1
 
-            elif event.event_type == "SUDO_SU":
-                sudo_su += 1
+            elif event.event_type == "NMAP_SCAN":
+                nmap_scan += 1
 
-            elif event.event_type == "CHMOD_EXEC":
-                chmod_exec += 1
-
-            elif event.event_type == "CURL":
-                curl += 1
-
-            elif event.event_type == "WGET":
-                wget += 1
-
-            elif event.event_type == "CURL_BASH":
-                curl_bash += 1
-
-            elif event.event_type == "NETCAT":
-                netcat += 1
-
-            elif event.event_type == "NMAP":
-                nmap += 1
-
-            elif event.event_type == "HYDRA":
-                hydra += 1
+            elif event.event_type == "HYDRA_BRUTEFORCE":
+                hydra_bruteforce += 1
 
             elif event.event_type == "SSH_BRUTEFORCE":
                 ssh_bruteforce += 1
 
-            elif event.event_type == "OSASCRIPT":
-                osascript += 1
+            elif event.event_type == "PERSISTENCE_CREATED":
+                persistence_created += 1
 
-            elif event.event_type == "LAUNCHCTL":
-                launchctl += 1
-
-            elif event.event_type == "BASH_SHELL":
-                bash_shell += 1
-
-            elif event.event_type == "ZSH_SHELL":
-                zsh_shell += 1
+            elif event.event_type == "OSASCRIPT_SHELL":
+                osascript_shell += 1
 
             elif event.event_type == "LOGOUT":
                 logout_hours.append(event_time.hour)
@@ -165,50 +147,86 @@ class FeatureExtractor:
             if logout_hours else 0
         )
 
+        features = {
+            "username": username,
+            "login_hour": login_hour,
+            "logout_hour": logout_hour,
+            "failed_login": failed_login,
+            "process_start": process_start,
+            "file_access": file_access,
+            "usb_insert": usb_insert,
+            "usb_executable_run": usb_executable_run,
+            "internet_download": internet_download,
+            "download_then_execute": download_then_execute,
+            "powershell_started": powershell_started,
+            "encoded_command": encoded_command,
+            "execution_policy_bypass": execution_policy_bypass,
+            "execution_from_temp": execution_from_temp,
+            "unsigned_binary": unsigned_binary,
+            "hidden_process": hidden_process,
+            "certutil_download": certutil_download,
+            "bitsadmin_download": bitsadmin_download,
+            "rundll32_network": rundll32_network,
+            "regsvr32_remote_script": regsvr32_remote_script,
+            "mshta_remote_script": mshta_remote_script,
+            "privilege_escalation": privilege_escalation,
+            "sudo_abuse": sudo_abuse,
+            "nmap_scan": nmap_scan,
+            "hydra_bruteforce": hydra_bruteforce,
+            "ssh_bruteforce": ssh_bruteforce,
+            "persistence_created": persistence_created,
+            "osascript_shell": osascript_shell
+        }
+
         return FeatureVector(
-            username=username,
+            username=features["username"],
 
-            login_hour=login_hour,
-            logout_hour=logout_hour,
+            # Authentication
+            login_hour=features["login_hour"],
+            logout_hour=features["logout_hour"],
+            failed_login=features["failed_login"],
 
-            failed_login=failed_login,
+            # Process Activity
+            process_start=features["process_start"],
 
-            process_start=process_start,
-            file_access=file_access,
+            # File Activity
+            file_access=features["file_access"],
 
-            usb_insert=usb_insert,
-            usb_executable_run=usb_executable_run,
+            # Device Activity
+            usb_insert=features["usb_insert"],
+            usb_executable_run=features["usb_executable_run"],
 
-            internet_download=internet_download,
-            downloaded_executable_run=downloaded_executable_run,
+            # Download Activity
+            internet_download=features["internet_download"],
+            download_then_execute=features["download_then_execute"],
 
-            powershell=powershell,
-            encoded_powershell=encoded_powershell,
+            # PowerShell / Script
+            powershell_started=features["powershell_started"],
+            encoded_command=features["encoded_command"],
+            execution_policy_bypass=features["execution_policy_bypass"],
 
-            certutil=certutil,
-            bitsadmin=bitsadmin,
-            rundll32=rundll32,
-            regsvr32=regsvr32,
-            mshta=mshta,
+            # Suspicious Execution
+            execution_from_temp=features["execution_from_temp"],
+            unsigned_binary=features["unsigned_binary"],
+            hidden_process=features["hidden_process"],
 
-            privilege_escalation=privilege_escalation,
+            # LOLBins
+            certutil_download=features["certutil_download"],
+            bitsadmin_download=features["bitsadmin_download"],
+            rundll32_network=features["rundll32_network"],
+            regsvr32_remote_script=features["regsvr32_remote_script"],
+            mshta_remote_script=features["mshta_remote_script"],
 
-            sudo=sudo,
-            sudo_su=sudo_su,
-            chmod_exec=chmod_exec,
+            # Privilege Escalation
+            privilege_escalation=features["privilege_escalation"],
+            sudo_abuse=features["sudo_abuse"],
 
-            curl=curl,
-            wget=wget,
-            curl_bash=curl_bash,
+            # Reconnaissance
+            nmap_scan=features["nmap_scan"],
+            hydra_bruteforce=features["hydra_bruteforce"],
+            ssh_bruteforce=features["ssh_bruteforce"],
 
-            netcat=netcat,
-            nmap=nmap,
-            hydra=hydra,
-
-            ssh_bruteforce=ssh_bruteforce,
-
-            osascript=osascript,
-            launchctl=launchctl,
-            bash_shell=bash_shell,
-            zsh_shell=zsh_shell
+            # Persistence
+            persistence_created=features["persistence_created"],
+            osascript_shell=features["osascript_shell"]
         )
