@@ -27,24 +27,40 @@ class WindowsCollector(BaseCollector):
         query = "*[System[(EventID=4624 or EventID=4625)]]"
 
         handle = win32evtlog.EvtQuery(
-
             "Security",
-
             win32evtlog.EvtQueryReverseDirection,
-
             query
 
         )
 
         events = win32evtlog.EvtNext(
-
             handle,
-
-            5
+            100
 
         )
 
         print(f"Events Found: {len(events)}")
+
+        for event in events:
+
+            xml = win32evtlog.EvtRender(
+                event,
+                win32evtlog.EvtRenderEventXml
+            )
+
+            event_object, logon_type = self.login_parser.parse(xml)
+
+            if logon_type == "5":
+                continue
+
+            insert_event(event_object)
+
+            print(
+                f"Saved Login Event: {event_object.username}"
+            )
+
+            break
+
     def collect_processes(self):
 
         print("Collecting process events...")
