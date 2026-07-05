@@ -1,13 +1,9 @@
-from datetime import datetime
-
 import win32evtlog
-import xml.etree.ElementTree as ET
 
+from collectors.base_collector import BaseCollector
 from collectors.filters.windows_filter import WindowsFilter
 from collectors.parsers.login_parser import LoginParser
-from collectors.base_collector import BaseCollector
 from core.database import insert_event
-from core.event import Event
 
 
 class WindowsCollector(BaseCollector):
@@ -18,25 +14,15 @@ class WindowsCollector(BaseCollector):
 
         self.login_parser = LoginParser()
 
-        self.filter = WindowsFilter()
-
     def collect_logins(self):
 
         print("Collecting login events...")
 
         query = "*[System[(EventID=4624 or EventID=4625)]]"
 
-        handle = win32evtlog.EvtQuery(
-            "Security",
-            win32evtlog.EvtQueryReverseDirection,
-            query
-
-        )
-
-        events = win32evtlog.EvtNext(
-            handle,
-            100
-
+        events = self.query_events(
+            query=query,
+            limit=100
         )
 
         print(f"Events Found: {len(events)}")
@@ -72,6 +58,24 @@ class WindowsCollector(BaseCollector):
     def collect_usb(self):
 
         print("Collecting USB events...")
+
+    def query_events(
+        self,
+        query,
+        limit=100,
+        log_name="Security"
+    ):
+
+        handle = win32evtlog.EvtQuery(
+            log_name,
+            win32evtlog.EvtQueryReverseDirection,
+            query
+        )
+
+        return win32evtlog.EvtNext(
+            handle,
+            limit
+        )
 
     def collect(self):
 
