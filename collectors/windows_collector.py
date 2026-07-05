@@ -24,6 +24,27 @@ class WindowsCollector(BaseCollector):
 
         print("Collecting login events...")
 
+        query = "*[System[(EventID=4624 or EventID=4625)]]"
+
+        handle = win32evtlog.EvtQuery(
+
+            "Security",
+
+            win32evtlog.EvtQueryReverseDirection,
+
+            query
+
+        )
+
+        events = win32evtlog.EvtNext(
+
+            handle,
+
+            5
+
+        )
+
+        print(f"Events Found: {len(events)}")
     def collect_processes(self):
 
         print("Collecting process events...")
