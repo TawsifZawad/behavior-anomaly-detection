@@ -1,5 +1,6 @@
 import sqlite3
 
+from datetime import datetime
 from core.logger import logger
 from core.event import Event
 
@@ -79,6 +80,30 @@ def insert_event(event: Event):
 
     conn = connect()
     cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM events
+        WHERE
+            username = ?
+            AND event_type = ?
+            AND details = ?
+            AND timestamp = ?
+        """,
+        (
+            event.username,
+            event.event_type,
+            event.details,
+            event.timestamp
+        )
+    )
+
+    existing = cursor.fetchone()
+
+    if existing:
+        conn.close()
+        return
 
     cursor.execute("""
         INSERT INTO events
