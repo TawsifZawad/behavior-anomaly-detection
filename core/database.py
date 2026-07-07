@@ -20,6 +20,7 @@ def create_tables():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_record_id TEXT UNIQUE,
         timestamp TEXT,
         username TEXT,
         os TEXT,
@@ -76,53 +77,53 @@ def create_tables():
 def insert_event(event: Event):
     """
     Insert a normalized event into the database.
+    Returns:
+        True  -> Event inserted
+        False -> Duplicate EventRecordID
     """
 
     conn = connect()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id
-        FROM events
-        WHERE
-            username = ?
-            AND event_type = ?
-            AND details = ?
-            AND timestamp = ?
-        """,
-        (
+    try:
+
+        cursor.execute("""
+            INSERT INTO events (
+                event_record_id,
+                timestamp,
+                username,
+                os,
+                event_type,
+                source,
+                ip,
+                details
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            event.event_record_id,
+            event.timestamp,
             event.username,
+            event.os,
             event.event_type,
-            event.details,
-            event.timestamp
-        )
-    )
+            event.source,
+            event.ip,
+            event.details
+        ))
 
-    existing = cursor.fetchone()
-
-    if existing:
+        conn.commit()
         conn.close()
-        return
 
-    cursor.execute("""
-        INSERT INTO events
-        (timestamp, username, os, event_type, source, ip, details)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        event.timestamp,
-        event.username,
-        event.os,
-        event.event_type,
-        event.source,
-        event.ip,
-        event.details
-    ))
+        logger.info(f"Event inserted for user: {event.username}")
 
-    conn.commit()
-    conn.close()
+        return True
 
-    logger.info(f"Event inserted for user: {event.username}")
+    except sqlite3.IntegrityError:
+
+        conn.close()
+
+        logger.info("Duplicate EventRecordID skipped.")
+
+        return False
 
 
 def clear_events():

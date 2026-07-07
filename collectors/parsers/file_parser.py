@@ -27,6 +27,11 @@ class FileParser:
             namespace
         ).attrib["SystemTime"]
 
+        event_record_id = root.find(
+            ".//e:EventRecordID",
+            namespace
+        ).text
+
         file_name = data.get(
             "ObjectName",
             ""
@@ -59,5 +64,6 @@ class FileParser:
             event_type="FILE_ACCESS",
             source="Security",
             ip="-",
-            details=details
+            details=details,
+            event_record_id=event_record_id
         )

@@ -27,6 +27,11 @@ class LoginParser:
             namespace
         ).attrib["SystemTime"]
 
+        event_record_id = root.find(
+            ".//e:EventRecordID",
+            namespace
+        ).text
+
         logon_type = data.get("LogonType", "")
 
         event = Event(
@@ -36,7 +41,8 @@ class LoginParser:
             event_type="LOGIN_SUCCESS",
             source="Security",
             ip=data.get("IpAddress", "-"),
-            details=str(data)
+            details=str(data),
+            event_record_id=event_record_id
         )
 
         return event, logon_type

@@ -3,6 +3,9 @@ import os
 from collections import defaultdict
 from datetime import datetime
 
+from core.process_detector import ProcessDetector
+from core.rules import powershell_rule
+
 DB_NAME = "database/behavior.db"
 
 
@@ -12,6 +15,7 @@ class AnomalyDetector:
 
         self.connection = sqlite3.connect(DB_NAME)
         self.cursor = self.connection.cursor()
+        self.process_detector = ProcessDetector()
 
     def load_events(self):
 
@@ -90,7 +94,9 @@ class AnomalyDetector:
 
             elif event_type == "PROCESS_START":
 
-                process = os.path.basename(details)
+                process = os.path.basename(
+                    details.split("|")[0].strip()
+                )
 
                 baseline[username]["processes"].add(process)
 
@@ -104,6 +110,116 @@ class AnomalyDetector:
 
         return baseline
 
+    def detect_login_anomalies(self, event, baseline):
+
+        username, _, timestamp, _ = event
+
+        hour = self.parse_hour(timestamp)
+
+        if hour is None:
+            return
+
+        if hour not in baseline[username]["hours"]:
+
+            print("[ANOMALY] Unusual Login Time")
+            print("User :", username)
+            print("Hour :", hour)
+            print()
+
+    def detect_process_anomalies(self, event, baseline):
+
+        username, _, _, details = event
+
+        parts = details.split("|", 1)
+
+        process = parts[0].strip()
+
+        command = ""
+
+        if len(parts) > 1:
+            command = parts[1].strip()
+
+        process_name = os.path.basename(process)
+
+        if process_name not in baseline[username]["processes"]:
+
+            print("[ANOMALY] Unknown Process")
+            print("User    :", username)
+            print("Process :", process_name)
+            print()
+
+        result = self.process_detector.analyze(
+            process,
+            command
+        )
+
+        if result:
+
+            print("=" * 70)
+
+            print("SUSPICIOUS PROCESS DETECTED")
+
+            print("=" * 70)
+
+            print()
+
+            print("User      :", username)
+
+            print("Process   :", process_name)
+
+            print("Severity  :", result["severity"])
+
+            print("Risk Score:", result["score"])
+
+            print()
+
+            print("Matched Rules")
+
+            print("-" * 30)
+
+            for rule in result["rules"]:
+
+                print(rule)
+
+            print()
+
+            print("MITRE ATT&CK")
+
+            print("-" * 30)
+
+            for attack in result["mitre"]:
+
+                print(
+                    attack["id"],
+                    "-",
+                    attack["name"]
+                )
+
+            print()
+
+            print("Command")
+
+            print("-" * 30)
+
+            print(result["command"])
+
+            print()
+
+    def detect_file_anomalies(self, event, baseline):
+
+        username, _, _, details = event
+
+        filename = os.path.basename(
+            details.split("|")[0].strip()
+        )
+
+        if filename not in baseline[username]["files"]:
+
+            print("[ANOMALY] Unknown File")
+            print("User :", username)
+            print("File :", filename)
+            print()
+
     def detect(self):
 
         events = self.load_events()
@@ -111,37 +227,52 @@ class AnomalyDetector:
         baseline = self.build_baseline(events)
 
         print("=" * 70)
-        print("BASELINE SUMMARY")
+        print("BASELINE BUILT")
         print("=" * 70)
 
-        for user, profile in baseline.items():
+        ignored_users = {
+            "-",
+            "SYSTEM",
+            "LOCAL SERVICE",
+            "NETWORK SERVICE"
+        }
 
-            print()
+        for event in events:
 
-            print("User :", user)
+            username, event_type, timestamp, details = event
 
-            print()
+            if not username:
+                continue
 
-            print("Login Hours")
-            print(sorted(profile["hours"]))
+            if username.endswith("$"):
+                continue
 
-            print()
+            if username.upper() in ignored_users:
+                continue
 
-            print("Known Processes")
+            if event_type in ("LOGIN", "LOGIN_SUCCESS"):
 
-            for process in sorted(profile["processes"]):
-                print("  ", process)
+                self.detect_login_anomalies(
+                    event,
+                    baseline
+                )
 
-            print()
+            elif event_type == "PROCESS_START":
 
-            print("Known Files")
+                self.detect_process_anomalies(
+                    event,
+                    baseline
+                )
 
-            for file in sorted(profile["files"]):
-                print("  ", file)
+            elif event_type == "FILE_ACCESS":
 
-            print()
+                self.detect_file_anomalies(
+                    event,
+                    baseline
+                )
 
-            print("-" * 70)
+        print()
+        print("Detection Finished.")
 
 
 if __name__ == "__main__":

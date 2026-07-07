@@ -1,18 +1,26 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Event:
 
-    timestamp: str
+    def __init__(
+        self,
+        timestamp,
+        username,
+        os,
+        event_type,
+        source,
+        ip,
+        details,
+        event_record_id=None
+    ):
 
-    username: str
-
-    os: str
-
-    event_type: str
-
-    source: str
-
-    ip: str = ""
-
-    details: str = ""
+        self.timestamp = timestamp
+        self.username = username
+        self.os = os
+        self.event_type = event_type
+        self.source = source
+        self.ip = ip
+        self.details = details
+        self.event_record_id = event_record_id

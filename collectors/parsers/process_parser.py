@@ -17,38 +17,51 @@ class ProcessParser:
 
         for item in root.findall(".//e:EventData/e:Data", namespace):
 
-            name = item.attrib.get("Name")
-            value = item.text
-
-            data[name] = value
+            data[item.attrib.get("Name")] = item.text
 
         timestamp = root.find(
             ".//e:TimeCreated",
             namespace
         ).attrib["SystemTime"]
 
-        # Process Name
+        event_record_id = root.find(
+            ".//e:EventRecordID",
+            namespace
+        ).text
+
         process_name = data.get(
             "NewProcessName",
             ""
         )
 
-        # Username
+        command_line = data.get(
+            "CommandLine",
+            ""
+        )
+
         username = data.get(
-            "SubjectUserName", 
+            "SubjectUserName",
             "-"
-            
         )
 
         if username == "-":
+
             username = data.get(
-                "TargetUserName", 
+                "TargetUserName",
                 "-"
-            
             )
 
         if username == "-":
+
             username = "SYSTEM"
+
+        if command_line:
+
+            details = process_name + " | " + command_line
+
+        else:
+
+            details=f"{process_name} | {command_line}"
 
         return Event(
             timestamp=timestamp,
@@ -57,5 +70,6 @@ class ProcessParser:
             event_type="PROCESS_START",
             source="Security",
             ip="-",
-            details=process_name
+            details=details,
+            event_record_id=event_record_id
         )

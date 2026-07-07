@@ -18,6 +18,11 @@ class USBParser:
             namespace
         ).attrib["SystemTime"]
 
+        event_record_id = root.find(
+            ".//e:EventRecordID",
+            namespace
+        ).text
+
         return Event(
             timestamp=timestamp,
             username="SYSTEM",
@@ -25,5 +30,6 @@ class USBParser:
             event_type="USB_EVENT",
             source="DriverFrameworks",
             ip="-",
-            details=xml
+            details=xml,
+            event_record_id=event_record_id
         )
