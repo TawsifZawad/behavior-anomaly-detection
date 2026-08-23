@@ -39,6 +39,14 @@ class ProcessParser:
             ""
         )
 
+        # Security 4688 reports the creator process as ParentProcessName
+        # (full image path). Needed for parent-child context detection
+        # (e.g. winword.exe spawning powershell.exe).
+        parent_process = data.get(
+            "ParentProcessName",
+            ""
+        ) or ""
+
         username = data.get(
             "SubjectUserName",
             "-"
@@ -55,13 +63,10 @@ class ProcessParser:
 
             username = "SYSTEM"
 
-        if command_line:
+        details = f"{process_name} | {command_line}"
 
-            details = process_name + " | " + command_line
-
-        else:
-
-            details=f"{process_name} | {command_line}"
+        if parent_process:
+            details += f" | Parent={parent_process}"
 
         return Event(
             timestamp=timestamp,

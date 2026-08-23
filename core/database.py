@@ -126,6 +126,43 @@ def insert_event(event: Event):
         return False
 
 
+def insert_events_bulk(events):
+    """
+    Insert many events in a single transaction (one connection,
+    executemany). Duplicates (same event_record_id) are ignored. Far
+    faster than calling insert_event per event when loading hundreds or
+    thousands of rows. Returns the number of rows attempted.
+    """
+
+    if not events:
+        return 0
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    rows = [
+        (
+            e.event_record_id, e.timestamp, e.username, e.os,
+            e.event_type, e.source, e.ip, e.details,
+        )
+        for e in events
+    ]
+
+    cursor.executemany("""
+        INSERT OR IGNORE INTO events (
+            event_record_id, timestamp, username, os,
+            event_type, source, ip, details
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, rows)
+
+    conn.commit()
+    conn.close()
+
+    logger.info(f"Bulk inserted {len(rows)} events.")
+    return len(rows)
+
+
 def clear_events():
 
     conn = connect()
@@ -151,3 +188,63 @@ def get_all_events():
     conn.close()
 
     return rows
+
+
+def get_events_by_user(username):
+    """
+    All events for one user as (event_type, details, source, ip) rows.
+    Used to pull the concrete evidence (command lines, file names,
+    signatures) behind an alert for display in the dashboard.
+    """
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT event_type, details, source, ip "
+        "FROM events WHERE username = ?",
+        (username,),
+    )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    return rows
+
+
+def get_usb_drive_letters():
+    """
+    Drive letters recorded by past USB_INSERT events, as a lowercase
+    set ({"e:"}). Used to correlate process execution paths with
+    removable media even after the device has been unplugged.
+    """
+
+    conn = connect()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT details FROM events WHERE event_type = 'USB_INSERT'"
+    )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    letters = set()
+
+    for (details,) in rows:
+
+        if not details or "Drive=" not in details:
+            continue
+
+        value = details.split("Drive=", 1)[1].split("|", 1)[0].strip()
+
+        for letter in value.split(","):
+
+            letter = letter.strip().lower()
+
+            if len(letter) == 2 and letter[1] == ":":
+                letters.add(letter)
+
+    return letters

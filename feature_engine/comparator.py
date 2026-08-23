@@ -1,5 +1,6 @@
 class BehaviorComparator:
 
+    # Absolute tolerance per feature.
     THRESHOLDS = {
         "login_hour": 1,
         "logout_hour": 1,
@@ -13,6 +14,17 @@ class BehaviorComparator:
 
         "file_access": 1
     }
+
+    # High-volume features whose "normal" scales with the user's activity
+    # (a workstation runs a very different number of processes than the
+    # toy sample users). For these the effective tolerance is a fraction
+    # of the baseline, with an absolute floor — otherwise every real scan
+    # trivially looks "changed".
+    RELATIVE = {
+        "process_start": 0.5,
+        "file_access": 0.5,
+    }
+    RELATIVE_FLOOR = 5
 
     def compare(self, current, baseline):
 
@@ -41,6 +53,13 @@ class BehaviorComparator:
             difference = current_value - baseline_value
 
             threshold = self.THRESHOLDS.get(feature, 0)
+
+            if feature in self.RELATIVE:
+                threshold = max(
+                    self.RELATIVE_FLOOR,
+                    self.RELATIVE[feature] * abs(baseline_value or 0),
+                    threshold,
+                )
 
             status = "normal"
 

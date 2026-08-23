@@ -15,6 +15,23 @@ database/*.db
 # Logs
 logs/*.log
 
+# PyInstaller build artifacts
+build/
+*.spec
+
+# Runtime outputs (regenerated on each run)
+reports/
+alerts/*.json
+
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Large public datasets — download separately (scripts print instructions)
+data/datasets/
+
+# Generated CERT training table (rebuild: scripts/cert_train.py)
+data/ml_cert_dataset.csv
+
+# Large per-OS binary — rebuild with PyInstaller / build-standalone.sh
+software/windows-demo.exe

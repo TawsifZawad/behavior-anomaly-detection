@@ -1,35 +1,68 @@
-import xml.etree.ElementTree as ET
+from datetime import datetime
 
 from core.event import Event
 
 
 class USBParser:
 
-    def parse(self, xml):
+    def get_drive_letters(self, disk):
+        """
+        Resolve the logical drive letters (["E:"]) of a Win32_DiskDrive
+        via its partition associations. May be empty right after insert
+        if the volume has not mounted yet.
+        """
 
-        root = ET.fromstring(xml)
+        letters = []
 
-        namespace = {
-            "e": "http://schemas.microsoft.com/win/2004/08/events/event"
-        }
+        try:
 
-        timestamp = root.find(
-            ".//e:TimeCreated",
-            namespace
-        ).attrib["SystemTime"]
+            for partition in disk.associators(
+                "Win32_DiskDriveToDiskPartition"
+            ):
 
-        event_record_id = root.find(
-            ".//e:EventRecordID",
-            namespace
-        ).text
+                for logical in partition.associators(
+                    "Win32_LogicalDiskToPartition"
+                ):
+
+                    letters.append(logical.DeviceID)
+
+        except Exception:
+            pass
+
+        return letters
+
+    def parse(
+        self,
+        disk,
+        username,
+        event_type
+    ):
+
+        drive_letters = self.get_drive_letters(disk)
+
+        details = (
+            f"Manufacturer={getattr(disk,'Manufacturer','Unknown')} | "
+            f"Model={disk.Model} | "
+            f"Device={disk.DeviceID} | "
+            f"Interface={disk.InterfaceType} | "
+            f"Drive={','.join(drive_letters) if drive_letters else 'Unknown'}"
+        )
 
         return Event(
-            timestamp=timestamp,
-            username="SYSTEM",
+
+            timestamp=datetime.now().isoformat(),
+
+            username=username,
+
             os="Windows",
-            event_type="USB_EVENT",
-            source="DriverFrameworks",
+
+            event_type=event_type,
+
+            source="WMI",
+
             ip="-",
-            details=xml,
-            event_record_id=event_record_id
+
+            details=details,
+
+            event_record_id=int(datetime.now().timestamp()*1000)
         )

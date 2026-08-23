@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Behavior Anomaly Detection System — Linux demo launcher.
+#
+# Runs the app from the project source. Requires Python 3 and the
+# dependencies (see requirements.txt). For a true standalone binary that
+# needs no Python, run ./software/build-standalone.sh ON Linux.
+#
+# Usage:
+#   ./software/linux-demo            # interactive menu (Own / Analyze / Live)
+#   ./software/linux-demo analyze    # sample-data report
+#   sudo ./software/linux-demo own   # live scan of THIS machine (needs root
+#                                    # to read /var/log/auth.log + auditd)
+cd "$(dirname "$0")/.." || exit 1
+exec python3 bads.py "$@"

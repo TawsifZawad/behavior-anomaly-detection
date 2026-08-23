@@ -22,6 +22,10 @@ class LoginParser:
 
             data[name] = value
 
+        # ----------------------------
+        # System fields
+        # ----------------------------
+
         timestamp = root.find(
             ".//e:TimeCreated",
             namespace
@@ -32,13 +36,31 @@ class LoginParser:
             namespace
         ).text
 
+        event_id = root.find(
+            ".//e:EventID",
+            namespace
+        ).text
+
         logon_type = data.get("LogonType", "")
+
+        # ----------------------------
+        # Event Type
+        # ----------------------------
+
+        if event_id == "4624":
+            event_type = "LOGIN_SUCCESS"
+
+        elif event_id == "4625":
+            event_type = "LOGIN_FAILED"
+
+        else:
+            event_type = "LOGIN"
 
         event = Event(
             timestamp=timestamp,
             username=data.get("TargetUserName", "Unknown"),
             os="Windows",
-            event_type="LOGIN_SUCCESS",
+            event_type=event_type,
             source="Security",
             ip=data.get("IpAddress", "-"),
             details=str(data),
