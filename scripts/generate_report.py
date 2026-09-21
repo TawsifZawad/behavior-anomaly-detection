@@ -859,14 +859,21 @@ def build_story(st, toc_rows):
       "empirically justifies the added layers.")
 
     sec("6.2", "Future Work Plan")
-    b("Deploy live Suricata and Wazuh at scale and evaluate cross-plane "
-      "correlation on production traffic.")
-    b("Extend the per-user behavioural time-series (already recorded) into "
-      "longer-horizon trend and drift detection.")
-    b("Add network-behaviour anomaly features (C2 beaconing, DNS "
-      "tunnelling) on top of Suricata signatures.")
-    b("Broaden dataset validation and tune the operator allowlist for "
-      "specific enterprise environments.")
+    b("Deploy Suricata and Wazuh live at scale, and evaluate cross-plane "
+      "correlation against real production traffic rather than recorded "
+      "samples.")
+    b("Extend the per-user behavioural time series, which the system already "
+      "records, into longer-horizon trend and drift detection.")
+    b("Add network-behaviour anomaly features — C2 beaconing and DNS "
+      "tunnelling — on top of the existing Suricata signatures.")
+    b("Broaden dataset validation further, and tune the operator allowlist "
+      "for specific enterprise environments.")
+    b("Add e-mail and web-log features to the behavioural model. CERT r4.2 "
+      "already provides both (email.csv, http.csv); they were left out of "
+      "the current evaluation only because the project’s live collectors "
+      "do not yet read that kind of activity off a running machine, and the "
+      "CERT result suggests that per-day insider detection would benefit "
+      "from incorporating them once the collectors support it.")
 
     # ------------------------- BIBLIOGRAPHY -----------------------------
     S.append(PageBreak())

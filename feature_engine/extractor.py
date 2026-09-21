@@ -76,6 +76,8 @@ class FeatureExtractor:
         port_scan = 0
         malicious_ip_contact = 0
         data_exfiltration = 0
+        dns_tunneling = 0
+        c2_beaconing = 0
 
         siem_alert = 0
 
@@ -233,6 +235,12 @@ class FeatureExtractor:
             elif event.event_type == "DATA_EXFILTRATION":
                 data_exfiltration += 1
 
+            elif event.event_type == "DNS_TUNNELING":
+                dns_tunneling += 1
+
+            elif event.event_type == "C2_BEACONING":
+                c2_beaconing += 1
+
             elif event.event_type == "SIEM_ALERT":
                 siem_alert += 1
 
@@ -310,6 +318,8 @@ class FeatureExtractor:
             "port_scan": port_scan,
             "malicious_ip_contact": malicious_ip_contact,
             "data_exfiltration": data_exfiltration,
+            "dns_tunneling": dns_tunneling,
+            "c2_beaconing": c2_beaconing,
             "siem_alert": siem_alert,
             "login_count": login_count,
             "logout_count": logout_count,
@@ -397,6 +407,8 @@ class FeatureExtractor:
             port_scan=features["port_scan"],
             malicious_ip_contact=features["malicious_ip_contact"],
             data_exfiltration=features["data_exfiltration"],
+            dns_tunneling=features["dns_tunneling"],
+            c2_beaconing=features["c2_beaconing"],
 
             # SIEM Plane (Wazuh)
             siem_alert=features["siem_alert"],

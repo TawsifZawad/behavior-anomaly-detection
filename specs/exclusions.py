@@ -40,8 +40,36 @@ OPERATOR_ALLOWLIST = [
 ]
 
 
+# --- Enterprise tuning without editing code -------------------------
+# An operator can extend the allowlist per environment by dropping a
+# plain-text file at  config/allowlist.local.conf  — one trusted
+# substring pattern per line (blank lines and lines starting with '#'
+# are ignored). This mirrors config/sensors.local.conf and lets a
+# packaged build be tuned per site without a rebuild. Everything not on
+# the combined list is still fully analysed.
+import os as _os
+
+
+def _load_operator_allowlist():
+    patterns = []
+    conf = _os.path.join("config", "allowlist.local.conf")
+    if _os.path.exists(conf):
+        try:
+            with open(conf, encoding="utf-8") as _f:
+                for _line in _f:
+                    _line = _line.strip()
+                    if not _line or _line.startswith("#"):
+                        continue
+                    patterns.append(_line.strip().strip('"').strip("'"))
+        except Exception:
+            pass
+    return patterns
+
+
 EXCLUSION_PATTERNS = [
-    p.lower() for p in (SELF_EXCLUSIONS + OPERATOR_ALLOWLIST) if p
+    p.lower()
+    for p in (SELF_EXCLUSIONS + OPERATOR_ALLOWLIST + _load_operator_allowlist())
+    if p
 ]
 
 

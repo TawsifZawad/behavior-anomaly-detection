@@ -49,7 +49,7 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
 
-from models.feature_vector import ML_MODEL_FEATURES
+from models.feature_vector import ML_MODEL_FEATURES, CERT_EXTRA_FEATURES
 from ml.trainer import BehaviorTrainer
 
 DATA_DIR = os.path.join("data", "datasets", "cert")
@@ -58,13 +58,22 @@ FILES = {
     "device": os.path.join(DATA_DIR, "device.csv"),
     "file": os.path.join(DATA_DIR, "file.csv"),
     "http": os.path.join(DATA_DIR, "http.csv"),
+    "email": os.path.join(DATA_DIR, "email.csv"),
 }
 OUT_DATASET = os.path.join("data", "ml_cert_dataset.csv")
 OUT_MODEL = os.path.join("ml", "model_cert.joblib")
+OUT_MODEL_EXT = os.path.join("ml", "model_cert_ext.joblib")  # + email/web
 
 CHUNK = 1_000_000
 DATE_FMT = "%m/%d/%Y %H:%M:%S"      # CERT timestamp format
 WORK_START, WORK_END = 8, 18        # business hours -> off-hours outside
+
+# The CERT synthetic organisation's own e-mail domain; recipients outside
+# it count as "external" (a bulk-external-mail day is an exfil signal).
+CERT_ORG_DOMAIN = "dtaa.com"
+
+_DOMAIN_RE = re.compile(r"https?://([^/\s]+)", re.IGNORECASE)
+_EMAIL_RE = re.compile(r"[\w.\-+]+@([\w.\-]+)")
 
 # Per (user, day) accumulators, kept as light scalars/sets so the whole
 # dataset streams through in bounded memory.
@@ -83,6 +92,13 @@ off_logon = defaultdict(int)    # Logon events outside business hours
 file_types = defaultdict(set)   # distinct file extensions touched
 removable = defaultdict(int)    # files flagged to/from removable media
 
+# E-mail / web accumulators (CERT-only benchmark features).
+web_cnt = defaultdict(int)      # http requests
+web_domains = defaultdict(set)  # distinct domains browsed
+email_sent = defaultdict(int)   # e-mails sent
+email_ext = defaultdict(int)    # sent e-mails with an external recipient
+email_attach = defaultdict(int)  # attachments sent
+
 
 def _keys(chunk):
     dt = pd.to_datetime(chunk["date"], format=DATE_FMT, errors="coerce")
@@ -99,15 +115,22 @@ def _keys(chunk):
     return user, day, hour, pc, is_off, is_wknd, chunk
 
 
+def _col(chunk, name):
+    return (chunk[name].astype(str).to_numpy()
+            if name in chunk.columns else None)
+
+
 def _absorb(chunk, kind):
     """Fold one chunk of one source file into the global accumulators."""
     user, day, hour, pc, is_off, is_wknd, chunk = _keys(chunk)
-    activity = (chunk["activity"].astype(str).to_numpy()
-                if "activity" in chunk.columns else None)
-    fname = (chunk["filename"].astype(str).to_numpy()
-             if "filename" in chunk.columns else None)
-    rem = (chunk["to_removable_media"].astype(str).to_numpy()
-           if "to_removable_media" in chunk.columns else None)
+    activity = _col(chunk, "activity")
+    fname = _col(chunk, "filename")
+    rem = _col(chunk, "to_removable_media")
+    url = _col(chunk, "url")
+    to = _col(chunk, "to")
+    cc = _col(chunk, "cc")
+    bcc = _col(chunk, "bcc")
+    attach = _col(chunk, "attachments")
 
     for i in range(len(user)):
         k = (user[i], day[i])
@@ -144,11 +167,33 @@ def _absorb(chunk, kind):
             if rem is not None and rem[i].strip().lower() in (
                     "true", "1", "yes"):
                 removable[k] += 1
+        elif kind == "http":
+            web_cnt[k] += 1
+            if url is not None:
+                m = _DOMAIN_RE.match(url[i]) or _DOMAIN_RE.search(url[i])
+                if m:
+                    web_domains[k].add(m.group(1).lower())
+        elif kind == "email":
+            # A sent e-mail (activity "Send"); a View is inbound noise.
+            if activity is None or "send" in activity[i].lower():
+                email_sent[k] += 1
+                recipients = " ".join(
+                    r[i] for r in (to, cc, bcc)
+                    if r is not None and r[i] and r[i].lower() != "nan"
+                )
+                domains = {d.lower() for d in _EMAIL_RE.findall(recipients)}
+                if any(CERT_ORG_DOMAIN not in d for d in domains):
+                    email_ext[k] += 1
+                if attach is not None:
+                    try:
+                        email_attach[k] += int(float(attach[i]))
+                    except (ValueError, TypeError):
+                        pass
 
 
 def _stream(path, kind):
     want = {"date", "user", "pc", "activity", "filename",
-            "to_removable_media"}
+            "to_removable_media", "url", "to", "cc", "bcc", "attachments"}
     reader = pd.read_csv(
         path, chunksize=CHUNK,
         usecols=lambda c: c.strip().lower() in want,
@@ -198,6 +243,15 @@ def build_rows():
             "usb_events": usb_cnt.get(k, 0),
             "removable_file_events": removable.get(k, 0),  # r5/r6 flag; 0 on r4.2
             "distinct_ips": len(pcs.get(k, ())),   # distinct machines proxy
+            # --- E-MAIL / WEB (CERT-only benchmark features) ---
+            "web_events": web_cnt.get(k, 0),
+            "distinct_web_domains": len(web_domains.get(k, ())),
+            "email_sent": email_sent.get(k, 0),
+            "external_email_ratio": (
+                round(email_ext.get(k, 0) / email_sent[k], 4)
+                if email_sent.get(k) else 0.0
+            ),
+            "email_attachments": email_attach.get(k, 0),
             "label": 0,                  # normal background baseline
         })
     return rows
@@ -220,7 +274,7 @@ def main():
         return
 
     print("Streaming CERT sources ...")
-    for kind in ("logon", "device", "file", "http"):
+    for kind in ("logon", "device", "file", "http", "email"):
         if kind in present:
             _stream(present[kind], kind)
         else:
@@ -229,7 +283,7 @@ def main():
     print("Aggregating per user-day sessions ...")
     rows = build_rows()
     df = pd.DataFrame(rows)
-    cols = ["username"] + ML_MODEL_FEATURES + ["label"]
+    cols = ["username"] + ML_MODEL_FEATURES + CERT_EXTRA_FEATURES + ["label"]
     df = df[cols]
 
     os.makedirs(os.path.dirname(OUT_DATASET), exist_ok=True)
@@ -239,16 +293,35 @@ def main():
     print(f"\nBuilt {len(df):,} normal sessions from {users} users.")
     print(f"Dataset written to {OUT_DATASET}")
 
-    zero_cols = [c for c in ML_MODEL_FEATURES
+    zero_cols = [c for c in ML_MODEL_FEATURES + CERT_EXTRA_FEATURES
                  if (df[c] == 0).all()]
     if zero_cols:
-        print("Note: these features are all-zero (not recorded by CERT): "
-              + ", ".join(zero_cols))
+        print("Note: these features are all-zero (source file not present "
+              "or not recorded by CERT): " + ", ".join(zero_cols))
 
+    # Base model: the deployed behavioural feature set (unchanged).
     print("\nTraining Isolation Forest on CERT normal behaviour ...")
     BehaviorTrainer().train(dataset_path=OUT_DATASET, model_path=OUT_MODEL)
+
+    # Extended model: the same features PLUS e-mail/web (benchmark-only).
+    # Trained whenever the CERT e-mail/web sources actually contributed,
+    # so the thesis can measure what those planes add (future-work item).
+    email_web_present = any(
+        not (df[c] == 0).all() for c in CERT_EXTRA_FEATURES
+    )
+    if email_web_present:
+        print("\nTraining EXTENDED model (+ e-mail/web features) ...")
+        ext = BehaviorTrainer()
+        ext.FEATURES = ML_MODEL_FEATURES + CERT_EXTRA_FEATURES
+        ext.train(dataset_path=OUT_DATASET, model_path=OUT_MODEL_EXT)
+        print(f"Extended model saved to {OUT_MODEL_EXT}. Run "
+              "`python -m scripts.cert_eval` to measure the ROC-AUC delta.")
+    else:
+        print("\n(E-mail/web sources absent — extended model skipped. "
+              "Add email.csv / http.csv to " + DATA_DIR + "/ to enable it.)")
+
     print(
-        "\nDone. To use this model for the reproducible `analyze` demo, "
+        "\nDone. To use the base model for the reproducible `analyze` demo, "
         "replace ml/model.joblib with " + OUT_MODEL + " (keep a backup), "
         "or point the pipeline's SAMPLE_MODEL at it."
     )

@@ -372,6 +372,47 @@ class CorrelationEngine:
                     "anomaly-based detection agree.",
             })
 
+        # C2 beaconing (network behaviour) confirmed by a host-side
+        # command channel / payload — periodic callbacks are the network
+        # signature of an implant the host activity explains.
+        if features.c2_beaconing > 0 and (
+            features.reverse_shell > 0
+            or features.encoded_command > 0
+            or features.powershell_started > 0
+            or features.persistence_created > 0
+            or features.malicious_ip_contact > 0
+        ):
+            correlations.append({
+                "name": "C2 Beaconing Confirmed (Host + Network)",
+                "severity": "CRITICAL",
+                "attack_class": "COMMAND_AND_CONTROL",
+                "mitre": ["T1071", "T1059"],
+                "description":
+                    "Suricata observed periodic beaconing to an external "
+                    "host AND the host ran a remote-command / persistence "
+                    "payload — implant confirmed across planes.",
+            })
+
+        # DNS tunnelling (network behaviour) used as an exfiltration /
+        # command channel, corroborated by credential or bulk data access
+        # on the host.
+        if features.dns_tunneling > 0 and (
+            features.sensitive_file_access > 0
+            or features.data_exfiltration > 0
+            or features.reverse_shell > 0
+            or features.persistence_created > 0
+        ):
+            correlations.append({
+                "name": "DNS Tunnelling Channel (Host + Network)",
+                "severity": "CRITICAL",
+                "attack_class": "EXFILTRATION",
+                "mitre": ["T1071.004", "T1048.003"],
+                "description":
+                    "Suricata detected high-entropy DNS tunnelling while "
+                    "the host accessed sensitive data or opened a command "
+                    "channel — covert DNS exfiltration confirmed.",
+            })
+
         # Payload delivery (host) whose download source is confirmed
         # malicious on the wire.
         if features.malicious_ip_contact > 0 and (

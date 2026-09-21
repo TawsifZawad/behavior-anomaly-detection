@@ -1,11 +1,68 @@
 import os
 import json
+from collections import defaultdict
+from datetime import datetime
 
 from collectors.base_collector import BaseCollector
 from core.event import Event
 from core.network_detector import NetworkDetector
 from core.database import create_tables, insert_event
 from config.settings import SURICATA_EVE_FILE
+from specs.mitre_rules import CONTEXT_MITRE
+from specs.network_rules import (
+    PRIVATE_IP_PREFIXES,
+    BEACON_MIN_HITS,
+    BEACON_MAX_CV,
+    BEACON_MIN_INTERVAL,
+)
+
+
+def _is_private_ip(ip):
+    if not ip:
+        return True
+    return any(str(ip).startswith(p) for p in PRIVATE_IP_PREFIXES)
+
+
+def _parse_epoch(timestamp):
+    """Best-effort epoch seconds from a Suricata ISO timestamp."""
+    if not timestamp:
+        return None
+    ts = timestamp.split("+")[0].split("Z")[0]
+    try:
+        return datetime.fromisoformat(ts).timestamp()
+    except ValueError:
+        return None
+
+
+def _detect_beacons(dest_times):
+    """
+    Given {dest_ip: [epoch, ...]} of outbound connections to external
+    hosts, return the destinations whose callbacks are periodic enough to
+    look like C2 beaconing: enough hits, and a low coefficient of
+    variation (std/mean) of the inter-arrival gaps.
+    """
+    beacons = []
+    for dest, times in dest_times.items():
+        if len(times) < BEACON_MIN_HITS:
+            continue
+        times = sorted(times)
+        gaps = [b - a for a, b in zip(times, times[1:])]
+        gaps = [g for g in gaps if g >= BEACON_MIN_INTERVAL]
+        if len(gaps) < BEACON_MIN_HITS - 1:
+            continue
+        mean = sum(gaps) / len(gaps)
+        if mean <= 0:
+            continue
+        var = sum((g - mean) ** 2 for g in gaps) / len(gaps)
+        cv = (var ** 0.5) / mean
+        if cv <= BEACON_MAX_CV:
+            beacons.append({
+                "dest": dest,
+                "hits": len(times),
+                "interval": mean,
+                "cv": cv,
+            })
+    return beacons
 
 
 class SuricataCollector(BaseCollector):
@@ -84,6 +141,11 @@ class SuricataCollector(BaseCollector):
         saved = 0
         emitted = 0
 
+        # Per-external-destination connection timestamps, accumulated
+        # across this read so a beaconing pattern (periodic callbacks)
+        # can be judged once the whole batch is seen.
+        dest_times = defaultdict(list)
+
         with open(self.eve_path, "r", errors="ignore") as f:
 
             f.seek(offset)
@@ -99,6 +161,8 @@ class SuricataCollector(BaseCollector):
                 except json.JSONDecodeError:
                     continue
 
+                self._accumulate_beacon(record, dest_times)
+
                 events = self._map_record(record, username)
 
                 for event in events:
@@ -107,6 +171,13 @@ class SuricataCollector(BaseCollector):
                     emitted += 1
 
             new_offset = f.tell()
+
+        # Behaviour pass: emit one C2_BEACONING event per external
+        # destination whose callbacks are periodic enough.
+        for event in self._beacon_events(dest_times, username):
+            if insert_event(event):
+                saved += 1
+            emitted += 1
 
         if not reset:
             self.write_offset(new_offset)
@@ -118,6 +189,44 @@ class SuricataCollector(BaseCollector):
 
         self.stop()
         return []
+
+    def _accumulate_beacon(self, record, dest_times):
+        """Record the timestamp of any outbound connection to an external
+        host, keyed by destination, for the beaconing pass."""
+        if record.get("event_type") not in ("flow", "netflow", "dns"):
+            return
+        dest = record.get("dest_ip")
+        if not dest or _is_private_ip(dest):
+            return
+        epoch = _parse_epoch(record.get("timestamp"))
+        if epoch is not None:
+            dest_times[dest].append(epoch)
+
+    def _beacon_events(self, dest_times, username):
+        events = []
+        for beacon in _detect_beacons(dest_times):
+
+            mitre = []
+            if "C2_BEACONING" in CONTEXT_MITRE:
+                mitre = [CONTEXT_MITRE["C2_BEACONING"]]
+
+            record_id = f"suricata-beacon-{beacon['dest']}"
+
+            events.append(Event(
+                timestamp=datetime.now().isoformat(timespec="seconds"),
+                username=username or "network",
+                os="Network",
+                event_type="C2_BEACONING",
+                source="Suricata",
+                ip=str(beacon["dest"]),
+                details=(
+                    f"C2 beaconing: {beacon['hits']} periodic callbacks to "
+                    f"{beacon['dest']} every ~{beacon['interval']:.0f}s "
+                    f"(jitter cv={beacon['cv']:.2f})"
+                ),
+                event_record_id=record_id,
+            ))
+        return events
 
     def _map_record(self, record, username):
 

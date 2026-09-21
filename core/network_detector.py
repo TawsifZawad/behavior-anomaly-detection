@@ -1,3 +1,5 @@
+import math
+
 from specs.network_rules import (
     NETWORK_CATEGORY_RULES,
     DEFAULT_ALERT_WEIGHT,
@@ -5,8 +7,24 @@ from specs.network_rules import (
     SEVERITY_MULTIPLIER,
     EXFIL_BYTES_THRESHOLD,
     PRIVATE_IP_PREFIXES,
+    DNS_TUNNEL_MIN_QNAME_LEN,
+    DNS_TUNNEL_MIN_LABEL_LEN,
+    DNS_TUNNEL_MIN_ENTROPY,
+    DNS_TUNNEL_WEIGHT,
+    DNS_TUNNEL_SUSPECT_TYPES,
 )
 from specs.mitre_rules import CONTEXT_MITRE
+
+
+def _shannon_entropy(text):
+    """Bits-per-character Shannon entropy of a string (0 for empty)."""
+    if not text:
+        return 0.0
+    counts = {}
+    for ch in text:
+        counts[ch] = counts.get(ch, 0) + 1
+    n = len(text)
+    return -sum((c / n) * math.log2(c / n) for c in counts.values())
 
 
 class NetworkDetector:
@@ -44,6 +62,9 @@ class NetworkDetector:
 
         if event_type == "flow":
             return self._analyze_flow(record)
+
+        if event_type == "dns":
+            return self._analyze_dns(record)
 
         return None
 
@@ -118,4 +139,63 @@ class NetworkDetector:
             "category": "flow-exfiltration",
             "src_ip": record.get("src_ip"),
             "dest_ip": dest_ip,
+        }
+
+    # ------------------------------------------------------------------
+
+    def _analyze_dns(self, record):
+        """
+        DNS-tunnelling heuristic on a `dns` query record.
+
+        A tunnelling client hides payload in the query name, so we look
+        for an abnormally long query name whose longest label is both
+        long and high-entropy (encoded bytes rather than a real word).
+        Only queries are considered (rrtype present, no answers yet).
+        """
+
+        dns = record.get("dns", {}) or {}
+
+        # eve.json puts the queried name under `rrname`; on newer
+        # versions a query object may sit under `queries`.
+        rrname = dns.get("rrname") or ""
+        rrtype = (dns.get("rrtype") or "").upper()
+        if not rrname and isinstance(dns.get("queries"), list) and dns["queries"]:
+            q0 = dns["queries"][0] or {}
+            rrname = q0.get("rrname", "")
+            rrtype = (q0.get("rrtype") or rrtype).upper()
+
+        if not rrname or len(rrname) < DNS_TUNNEL_MIN_QNAME_LEN:
+            return None
+
+        labels = [l for l in rrname.split(".") if l]
+        if not labels:
+            return None
+        longest = max(labels, key=len)
+
+        entropy = _shannon_entropy(longest)
+        if len(longest) < DNS_TUNNEL_MIN_LABEL_LEN or \
+                entropy < DNS_TUNNEL_MIN_ENTROPY:
+            return None
+
+        # Abused query types raise confidence but are not required.
+        score = DNS_TUNNEL_WEIGHT
+        if rrtype in DNS_TUNNEL_SUSPECT_TYPES:
+            score = min(75, score + 10)
+
+        mitre = []
+        if "DNS_TUNNELING" in CONTEXT_MITRE:
+            mitre.append(CONTEXT_MITRE["DNS_TUNNELING"])
+
+        return {
+            "score": score,
+            "derived_events": ["DNS_TUNNELING"],
+            "mitre": mitre,
+            "signature": (
+                f"DNS tunnelling: {rrtype or 'query'} name len "
+                f"{len(rrname)}, label entropy {entropy:.1f} "
+                f"({rrname[:40]}...)"
+            ),
+            "category": "dns-tunnelling",
+            "src_ip": record.get("src_ip"),
+            "dest_ip": record.get("dest_ip"),
         }

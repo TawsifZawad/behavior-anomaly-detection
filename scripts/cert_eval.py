@@ -47,7 +47,7 @@ sys.path.insert(
 )
 
 import scripts.cert_train as ct
-from models.feature_vector import ML_MODEL_FEATURES
+from models.feature_vector import ML_MODEL_FEATURES, CERT_EXTRA_FEATURES
 from reporting.report_generator import ReportGenerator
 
 ANSWERS = os.path.join(ct.DATA_DIR, "answers")
@@ -76,8 +76,9 @@ def load_malicious_days():
 
 def stream_sessions():
     """Populate cert_train's per-(user,day) accumulators, then yield each
-    session as (user, date, feature-dict)."""
-    for kind in ("logon", "device", "file"):
+    session as (user, date, feature-dict). E-mail/web sources are streamed
+    when present so the extended (+ e-mail/web) feature set can be scored."""
+    for kind in ("logon", "device", "file", "http", "email"):
         path = ct.FILES.get(kind)
         if path and os.path.exists(path):
             ct._stream(path, kind)
@@ -90,6 +91,7 @@ def stream_sessions():
         active = max(1, hi - lo)
         login_h = ct.first_logon.get(k, lo)
         logout_h = ct.last_logoff.get(k, hi)
+        sent = ct.email_sent.get(k, 0)
         feat = {
             "login_hour": float(login_h),
             "logout_hour": float(logout_h),
@@ -109,8 +111,27 @@ def stream_sessions():
             "usb_events": ct.usb_cnt.get(k, 0),
             "removable_file_events": ct.removable.get(k, 0),
             "distinct_ips": len(ct.pcs.get(k, ())),
+            # --- e-mail / web (benchmark-only) ---
+            "web_events": ct.web_cnt.get(k, 0),
+            "distinct_web_domains": len(ct.web_domains.get(k, ())),
+            "email_sent": sent,
+            "external_email_ratio": (ct.email_ext.get(k, 0) / sent)
+            if sent else 0.0,
+            "email_attachments": ct.email_attach.get(k, 0),
         }
         yield user, pd.Timestamp(day).date(), feat
+
+
+def _score_featureset(X, y, tr_norm, test_idx):
+    """Train IF on the normal-only training rows and return anomaly scores
+    for the test rows (higher = more anomalous), for one feature matrix."""
+    model = make_pipeline(
+        StandardScaler(),
+        IsolationForest(n_estimators=300, contamination=0.02,
+                        random_state=42, n_jobs=-1),
+    )
+    model.fit(X[tr_norm])
+    return -model.decision_function(X[test_idx])
 
 
 def main():
@@ -129,12 +150,15 @@ def main():
           f"from {len(set(u for u, _ in mal))} insiders")
 
     print("Streaming CERT sessions and labelling ...")
-    X, y, users = [], [], []
+    EXT_FEATURES = ML_MODEL_FEATURES + CERT_EXTRA_FEATURES
+    X, X_ext, y, users = [], [], [], []
     for user, day, feat in stream_sessions():
         X.append([feat[f] for f in ML_MODEL_FEATURES])
+        X_ext.append([feat[f] for f in EXT_FEATURES])
         y.append(1 if (user, day) in mal else 0)
         users.append(user)
     X = np.array(X, dtype=float)
+    X_ext = np.array(X_ext, dtype=float)
     y = np.array(y, dtype=int)
     users = np.array(users)
     print(f"  sessions: {len(y):,}  normal: {(y == 0).sum():,}  "
@@ -211,6 +235,39 @@ def main():
           f"   Recall : {recall_score(y_true, y_pred, zero_division=0):.4f}"
           f"   F1 : {f1_score(y_true, y_pred, zero_division=0):.4f}")
 
+    # ---- Base vs. extended (+ e-mail/web) feature set ------------------
+    # The future-work claim is that e-mail/web behaviour improves per-day
+    # insider detection. Measure it honestly: same protocol, same split,
+    # base ROC-AUC vs. ROC-AUC with the e-mail/web features added.
+    base_auc = roc_auc_score(y_true, y_score)
+    email_web = {}
+    ext_has_signal = not np.allclose(
+        X_ext[:, len(ML_MODEL_FEATURES):], 0.0)
+    if ext_has_signal:
+        ext_score = _score_featureset(X_ext, y, tr_norm, test_idx)
+        ext_auc = roc_auc_score(y_true, ext_score)
+        ext_order = np.argsort(-ext_score)
+        ext_mal_sorted = y_true[ext_order]
+        ext_budget = {}
+        for pct in (5, 10, 20):
+            kk = max(1, int(n * pct / 100))
+            ext_budget[f"top_{pct}pct"] = round(
+                int(ext_mal_sorted[:kk].sum()) / total_mal, 4)
+        email_web = {
+            "base_roc_auc": round(base_auc, 4),
+            "extended_roc_auc": round(ext_auc, 4),
+            "delta_roc_auc": round(ext_auc - base_auc, 4),
+            "extended_detection_at_budget": ext_budget,
+            "extra_features": CERT_EXTRA_FEATURES,
+        }
+        print("\n-- E-mail/web features (base vs. extended feature set) --")
+        print(f"   base ROC-AUC     : {base_auc:.4f}")
+        print(f"   + e-mail/web     : {ext_auc:.4f}  "
+              f"(delta {ext_auc - base_auc:+.4f})")
+    else:
+        print("\n-- E-mail/web features: http.csv / email.csv absent or "
+              "empty; extended comparison skipped. --")
+
     report = ReportGenerator(output_dir=REPORT_DIR)
     metrics = report.generate(y_true, y_pred, y_score)
     metrics["dataset"] = "CERT r4.2 (insider threat)"
@@ -220,6 +277,8 @@ def main():
     metrics["normal_sessions"] = int((y == 0).sum())
     metrics["malicious_sessions"] = int((y == 1).sum())
     metrics["detection_at_budget"] = budgets
+    if email_web:
+        metrics["email_web"] = email_web
     with open(os.path.join(REPORT_DIR, "metrics.json"), "w",
               encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)

@@ -134,6 +134,8 @@ _INDICATOR_LABELS = {
     "PORT_SCAN": "Port scan (network)",
     "MALICIOUS_IP_CONTACT": "Malicious/C2 host",
     "DATA_EXFILTRATION": "Data exfiltration",
+    "C2_BEACONING": "C2 beaconing (network)",
+    "DNS_TUNNELING": "DNS tunnelling (network)",
     "SIEM_ALERT": "Wazuh SIEM alert",
 }
 
@@ -531,6 +533,23 @@ def analyze(feature_vectors, is_live=False, model_path=SAMPLE_MODEL):
         except Exception:
             pass
 
+        # Longer-horizon drift: compare this user's recent sessions with
+        # their earlier ones. Purely informational — it augments the
+        # narrative and dashboard, never the per-session decision.
+        drift = []
+        try:
+            from core.history import load_history
+            from feature_engine import drift as drift_engine
+            drift = drift_engine.detect(load_history(), features.username)
+        except Exception:
+            drift = []
+
+        if drift:
+            print("Behavioural drift (trend):")
+            for item in drift:
+                flag = " [security]" if item["security"] else ""
+                print(f"  ^ {item['text']}{flag}")
+
         # Record EVERY session (not just alerts) so the dashboard can
         # show live monitoring status even when a scan is benign.
         sessions.append({
@@ -541,6 +560,18 @@ def analyze(feature_vectors, is_live=False, model_path=SAMPLE_MODEL):
             "ml_prediction": label,
             "ml_score": anomaly_score,
             "ml_deviations": [d["text"] for d in ml_deviations],
+            "drift": [
+                {
+                    "text": d["text"],
+                    "security": d["security"],
+                    "feature": d["feature"],
+                    "label": d["label"],
+                    "recent": d["recent"],
+                    "baseline": d["baseline"],
+                    "z": d["z"],
+                }
+                for d in drift
+            ],
             "is_new": is_new,
         })
 

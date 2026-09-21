@@ -82,3 +82,35 @@ PRIVATE_IP_PREFIXES = (
     "fe80:",
     "169.254.",
 ) + tuple(f"172.{n}." for n in range(16, 32))
+
+
+# ---------------------------------------------------------------------
+# Network-BEHAVIOUR heuristics (no signature needed)
+#
+# These extend Suricata's signature layer with two behaviour-based
+# detections the ruleset alone misses: C2 beaconing (periodic callbacks)
+# and DNS tunnelling (data/command smuggled inside DNS query names).
+# Both are computed from eve.json `dns` / `flow` records, not `alert`s.
+# ---------------------------------------------------------------------
+
+# ---- DNS tunnelling -------------------------------------------------
+# A tunnelling client encodes payload into the query name, producing
+# abnormally long, high-entropy labels and an unusually large query name.
+# A single record is enough to flag when it is clearly anomalous.
+DNS_TUNNEL_MIN_QNAME_LEN = 52     # total query-name length (chars)
+DNS_TUNNEL_MIN_LABEL_LEN = 30     # length of the longest single label
+DNS_TUNNEL_MIN_ENTROPY = 3.6      # Shannon entropy (bits/char) of that label
+DNS_TUNNEL_WEIGHT = 60
+
+# Query types most abused for tunnelling (large answer capacity).
+DNS_TUNNEL_SUSPECT_TYPES = ("TXT", "NULL", "CNAME", "MX", "AAAA")
+
+# ---- C2 beaconing ---------------------------------------------------
+# A beacon calls home at a near-constant interval. Given the timestamps
+# of repeated outbound connections to one external destination, a low
+# coefficient of variation (std/mean) of the inter-arrival gaps, over
+# enough hits, is the tell-tale of automation rather than human browsing.
+BEACON_MIN_HITS = 6               # minimum callbacks to judge periodicity
+BEACON_MAX_CV = 0.25              # max coefficient of variation of gaps
+BEACON_MIN_INTERVAL = 5           # ignore bursts faster than this (seconds)
+BEACON_WEIGHT = 60

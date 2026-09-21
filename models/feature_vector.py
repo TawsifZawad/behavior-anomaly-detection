@@ -133,6 +133,24 @@ ML_MODEL_FEATURES = [
 ]
 
 
+# E-mail and web-log behavioural features. These are BENCHMARK-ONLY: CERT
+# r4.2 records e-mail (email.csv) and web (http.csv) activity, so the CERT
+# training/evaluation scripts can learn from them and measure the benefit.
+# They are deliberately NOT part of ML_MODEL_FEATURES, because the live
+# host collectors do not yet read e-mail / web activity off a running
+# machine — so the deployed model's input dimension is unchanged. When a
+# live e-mail/web collector is added, promote the ones it can fill into
+# ML_MODEL_FEATURES and retrain. (Future-work item, made concrete on the
+# CERT benchmark by scripts/cert_train.py and scripts/cert_eval.py.)
+CERT_EXTRA_FEATURES = [
+    "web_events",             # volume of web requests
+    "distinct_web_domains",   # variety of sites visited
+    "email_sent",             # e-mails sent
+    "external_email_ratio",   # fraction of sent mail to external domains
+    "email_attachments",      # attachments sent (exfil signal)
+]
+
+
 @dataclass
 class FeatureVector:
 
@@ -278,3 +296,10 @@ class FeatureVector:
     off_hours_logon: int = 0
     distinct_file_types: int = 0
     removable_file_events: int = 0
+
+    # Network-BEHAVIOUR indicators (Suricata behaviour pass, not
+    # signatures). Rule/correlation inputs only — deliberately NOT in
+    # ML_FEATURES / ML_MODEL_FEATURES, so the anomaly model's input
+    # dimension is unchanged. Default 0; the extractor fills them.
+    dns_tunneling: int = 0
+    c2_beaconing: int = 0

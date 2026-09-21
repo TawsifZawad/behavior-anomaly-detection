@@ -1,0 +1,23 @@
+# =====================================================================
+# Operator allowlist — per-environment tuning (no code change / rebuild)
+#
+# Copy this file to  config/allowlist.local.conf  and add one trusted
+# substring pattern per line. A process whose image path OR command line
+# contains any pattern (case-insensitive) is suppressed BEFORE threat
+# classification, exactly like specs/exclusions.py OPERATOR_ALLOWLIST.
+#
+# Rules:
+#   * one pattern per line; blank lines and lines starting with '#' ignored
+#   * keep patterns SPECIFIC so an attacker cannot ride on them
+#     (prefer a full path or a distinctive flag, not a bare exe name)
+#
+# Everything NOT matched here is still fully analysed.
+# =====================================================================
+
+# ---- Examples (uncomment / edit for your site) ----------------------
+# \jenkins\
+# \gitlab-runner\
+# deploy.ps1
+# c:\program files\trusted-agent\
+# /opt/company/backup-agent
+# ansible-playbook

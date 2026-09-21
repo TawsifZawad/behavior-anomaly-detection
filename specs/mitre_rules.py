@@ -282,6 +282,16 @@ CONTEXT_MITRE = {
         "name": "Exfiltration Over C2 Channel",
     },
 
+    "C2_BEACONING": {
+        "id": "T1071",
+        "name": "Application Layer Protocol (C2 beaconing)",
+    },
+
+    "DNS_TUNNELING": {
+        "id": "T1071.004",
+        "name": "Application Layer Protocol: DNS",
+    },
+
     # ---- SIEM plane (Wazuh) ---------------------------------------
 
     "SIEM_ALERT": {

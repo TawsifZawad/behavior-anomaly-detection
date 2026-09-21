@@ -1,0 +1,193 @@
+<title>Demo Recording Kit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#f5f7fb;--surface:#fff;--surface-2:#eef1f8;--ink:#151a26;--strong:#0a0e18;
+  --muted:#586176;--faint:#8b93a6;--line:#dde3ee;
+  --accent:#2743b3;--accent-2:#6d4bd6;--accent-soft:#e7ebfa;
+  --say:#15784a;--say-bg:#e4f4ec;--run:#9a3b12;--run-bg:#fbeee2;
+  --shadow:0 1px 2px rgba(20,30,60,.04),0 6px 20px rgba(20,30,60,.06);
+}
+:root:not([data-theme="light"]){@media (prefers-color-scheme:dark){
+  --ground:#0c0f15;--surface:#141a24;--surface-2:#1a212e;--ink:#e6eaf3;--strong:#f5f8ff;
+  --muted:#98a2b6;--faint:#6b7488;--line:#26303f;
+  --accent:#8098ff;--accent-2:#b39bff;--accent-soft:#1e2740;
+  --say:#43d08e;--say-bg:#12291e;--run:#f0a56a;--run-bg:#2c1a10;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --ground:#0c0f15;--surface:#141a24;--surface-2:#1a212e;--ink:#e6eaf3;--strong:#f5f8ff;
+  --muted:#98a2b6;--faint:#6b7488;--line:#26303f;
+  --accent:#8098ff;--accent-2:#b39bff;--accent-soft:#1e2740;
+  --say:#43d08e;--say-bg:#12291e;--run:#f0a56a;--run-bg:#2c1a10;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:0 22px}
+h1,h2,h3{color:var(--strong);font-weight:600;line-height:1.2;text-wrap:balance}
+.mono,code{font-family:"IBM Plex Mono",monospace}
+
+.hero{padding:48px 0 26px}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 12px;font-weight:500}
+.hero h1{font-size:2.3rem;margin:0 0 12px;letter-spacing:-.015em}
+.hero p{color:var(--muted);max-width:62ch;margin:0}
+.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:.74rem;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:5px 12px;color:var(--muted);box-shadow:var(--shadow)}
+.tag b{color:var(--strong)}
+
+.callout{background:var(--accent-soft);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:11px;padding:16px 18px;margin:22px 0;font-size:.94rem}
+.callout b{color:var(--strong)}
+.callout code{background:color-mix(in srgb,var(--accent) 12%,transparent);padding:1px 6px;border-radius:5px;font-size:.85rem}
+
+section{padding:26px 0;border-top:1px solid var(--line)}
+.sh{display:flex;align-items:baseline;gap:11px;margin:0 0 18px}
+.sh .n{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--accent);font-weight:600}
+.sh h2{font-size:1.35rem;margin:0}
+
+.chk{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:9px}
+.chk li{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:11px 14px;font-size:.92rem;box-shadow:var(--shadow)}
+.chk li b{color:var(--strong)}
+.chk code{background:var(--surface-2);padding:1px 6px;border-radius:5px;font-size:.84rem}
+
+/* scene card */
+.scene{background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.scene .top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.scene .clock{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.82rem;color:var(--surface);background:var(--accent);border-radius:7px;padding:4px 10px;flex:none;font-variant-numeric:tabular-nums}
+.scene .top h3{font-size:1.05rem;margin:0;flex:1}
+.scene .dur{font-family:"IBM Plex Mono",monospace;font-size:.72rem;color:var(--faint)}
+.scene .body{padding:6px 18px 16px}
+.row{display:grid;grid-template-columns:78px 1fr;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border-bottom:0}
+.row .lab{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding-top:2px}
+.lab.screen{color:var(--accent)}.lab.say{color:var(--say)}.lab.run{color:var(--run)}
+.row .val{font-size:.94rem}
+.row .val.sayv{color:var(--ink);font-style:italic}
+.runbox{background:var(--strong);border-radius:8px;padding:9px 12px;font-family:"IBM Plex Mono",monospace;font-size:.82rem;color:#7fe3a3;overflow-x:auto}
+:root[data-theme="dark"] .runbox,:root:not([data-theme="light"]) .runbox{background:#0a0d13}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .runbox{background:#0f1420}}
+.runbox .c{color:#8b97ad}
+
+.tips{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:16px 20px;box-shadow:var(--shadow)}
+.tips ul{margin:0;padding-left:18px}.tips li{margin:6px 0;font-size:.92rem}
+.foot{padding:28px 0 56px;text-align:center;color:var(--faint);font-size:.8rem;font-family:"IBM Plex Mono",monospace}
+
+@media (max-width:600px){.hero h1{font-size:1.8rem}.row{grid-template-columns:1fr;gap:5px}}
+@media print{.scene,.tips,.chk li{break-inside:avoid;box-shadow:none}body{background:#fff}}
+</style>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">bads · Behavior Anomaly Detection · demo film</p>
+  <h1>Demo Recording Kit</h1>
+  <p>A shot-by-shot script to record a ~4½-minute walkthrough of all three modes — Analyze, Own and Live — in a single screen capture. Read the <span class="mono">SAY</span> line as voiceover, type the <span class="mono">RUN</span> line on screen, and follow the clock.</p>
+  <div class="meta">
+    <span class="tag"><b>Runtime</b> ~4:40</span>
+    <span class="tag"><b>Record with</b> Win+G / OBS</span>
+    <span class="tag"><b>Modes</b> Analyze · Own · Live</span>
+    <span class="tag"><b>Take</b> one continuous pass</span>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+<div class="callout">
+  <b>Before you hit record</b> — get a guaranteed-clean state and open two things: a terminal (Administrator PowerShell) and the dashboard file. Run <code>python bads.py demo</code> once so the sample scenario, alerts and dashboard are freshly generated, then close the auto-opened browser tab (you'll open it on camera).
+</div>
+
+<!-- SETUP -->
+<section>
+  <div class="sh"><span class="n">00</span><h2>Setup checklist</h2></div>
+  <ul class="chk">
+    <li><b>Terminal:</b> open <b>Windows PowerShell as Administrator</b> (needed for Own/Live), <code>cd</code> into the project folder.</li>
+    <li><b>Clean state:</b> run <code>python bads.py demo</code> once, then close the browser tab it opens.</li>
+    <li><b>Screen recorder:</b> <code>Win + G</code> → Capture → Record, or OBS. Record the whole screen at 1080p.</li>
+    <li><b>Font size:</b> bump the terminal font (Ctrl + Scroll) so text is readable on video.</li>
+    <li><b>Dashboard ready:</b> know where <code>reports\dashboard.html</code> is — you'll open it live.</li>
+    <li><b>Optional (Live/network):</b> if showing Suricata, have the Ubuntu VM terminal ready in a second window.</li>
+  </ul>
+</section>
+
+<!-- SCENE 0 -->
+<section>
+  <div class="sh"><span class="n">01</span><h2>Scene-by-scene script</h2></div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">0:00</span><h3>Intro</h3><span class="dur">~18s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab screen">screen</div><div class="val">Title slide or the project folder open in the editor.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"This is a hybrid, cross-platform intrusion-detection system that targets the rare U2R and R2L attacks. It fuses host, network and SIEM telemetry, judges every session three ways, and runs in three modes — Analyze, Own and Live. Let me show you all three."</div></div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">0:18</span><h3>Analyze mode — the reproducible attack</h3><span class="dur">~70s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Analyze mode runs the full pipeline over a reproducible 100-user scenario. It needs no admin rights."</div></div>
+      <div class="row"><div class="lab run">run</div><div class="val"><div class="runbox">python bads.py analyze</div></div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Let it scroll to the attacker <b>Rahim</b>. Pause on his block.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Out of a hundred users, ninety-nine are cleared. One — Rahim — is flagged CRITICAL. Notice the eleven correlation chains, including the cross-plane ones: a host command plus a malicious network contact becomes a Confirmed C2 channel; a network scan plus host logon failures becomes a confirmed R2L intrusion. Each carries its MITRE technique code."</div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Scroll to the bottom line: <span class="mono">"Monitored 100 users … 1 flagged, 99 clear."</span></div></div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">1:28</span><h3>Dashboard walkthrough</h3><span class="dur">~70s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab screen">screen</div><div class="val">Open <code>reports\dashboard.html</code> in the browser.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"The same result rendered as an explainable dashboard. Every scanned session gets a card and an anomaly meter — not only the ones that alerted — so monitoring is visibly active."</div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Click a deviating-behaviour chip on Rahim → the popup opens.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Clicking a behaviour shows exactly how far it deviated — in standard deviations from this user's own normal — with a recent-trend line and why it matters. The model explains its own reasoning."</div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Scroll down: <b>Model Performance</b> → <b>Real-Scale Evaluation (CERT)</b> → <b>Evaluation Charts</b> → <b>Recent Alerts</b>.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Below are the model's metrics, a real-scale evaluation over a thousand CERT users and 66,000 sessions, the ROC and confusion charts, and the recent alerts — each with its MITRE codes and the exact offending command, file and network evidence."</div></div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">2:38</span><h3>Own mode — scan this machine</h3><span class="dur">~50s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Own mode scans the machine it runs on. Because it reads the Windows Security log, it needs Administrator rights and elevates automatically."</div></div>
+      <div class="row"><div class="lab run">run</div><div class="val"><div class="runbox">python bads.py own</div></div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Accept the UAC prompt. Show it collecting login / process / file / USB events, then the per-user verdicts for the real account(s).</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"It collects real host activity — logins, processes, files, USB — builds this machine's own behavioural baseline on the first run, and scores each session. On a clean machine everything reads SAFE, which is exactly what we want."</div></div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">3:28</span><h3>Live mode — continuous monitoring</h3><span class="dur">~50s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Live mode turns Own into continuous monitoring — it re-scans on a fixed interval and keeps the dashboard current."</div></div>
+      <div class="row"><div class="lab run">run</div><div class="val"><div class="runbox">python bads.py watch</div></div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val">Show one scan cycle: event counts collected, USB monitor, "Dashboard written". Switch to the open dashboard tab and refresh to show it updating. Then <b>Ctrl + C</b> to stop.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Each cycle collects new events, re-runs the three-way judgement and rewrites the dashboard, so an analyst always sees the current state. A live status indicator distinguishes it from a one-off report."</div></div>
+      <div class="row"><div class="lab screen">screen</div><div class="val"><b>Optional</b> — cut to the Ubuntu VM: show <code>sudo venv/bin/python bads.py own</code> picking up a live Suricata network alert, proving the network plane is real.</div></div>
+    </div>
+  </div>
+
+  <div class="scene">
+    <div class="top"><span class="clock">4:18</span><h3>Results &amp; close</h3><span class="dur">~22s</span></div>
+    <div class="body">
+      <div class="row"><div class="lab screen">screen</div><div class="val">Back on the dashboard metrics, or a results slide.</div></div>
+      <div class="row"><div class="lab say">say</div><div class="val sayv">"Validated on real recorded attacks — over 99% detected — on the NSL-KDD benchmark at a ROC of 0.944, and on the CERT insider-threat dataset of a thousand real users at 0.81. The benchmark's own weakness on rare network-only attacks is exactly why the host, SIEM and correlation layers are there. Thank you."</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIPS -->
+<section>
+  <div class="sh"><span class="n">02</span><h2>Recording tips</h2></div>
+  <div class="tips"><ul>
+    <li><b>One take, but forgiving:</b> if you fumble a line, pause 2 seconds and redo it — trim later in any free editor (Clipchamp on Windows).</li>
+    <li><b>Type commands slowly</b> and let output settle before speaking — dead air is fine, rushing isn't.</li>
+    <li><b>Zoom the terminal + browser</b> (Ctrl +) so text is legible at 1080p.</li>
+    <li><b>Keep it 4–5 min:</b> if tight, shorten the dashboard walkthrough and skip the optional VM/Suricata cut.</li>
+    <li><b>Narration language:</b> the SAY lines are English for the thesis; read them in Bangla instead if you prefer — the on-screen actions are the same.</li>
+    <li><b>Don't run <code>demo</code> on camera</b> — run <code>analyze</code> (it's the same scenario, no retraining, and starts instantly).</li>
+  </ul></div>
+</section>
+
+</main>
+<p class="foot">bads demo recording kit · read SAY · type RUN · follow the clock</p>

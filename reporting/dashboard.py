@@ -370,6 +370,9 @@ class DashboardBuilder:
                 dev_html = ("<div class='bdevs muted'>within normal "
                             "behavioural range</div>")
 
+            drift_html = self._drift_html(
+                s.get("username"), s.get("drift") or [], history)
+
             cards.append(
                 "<div class='mlcard'>"
                 f"<div class='mlhead'><span class='mluser'>{user}"
@@ -381,6 +384,7 @@ class DashboardBuilder:
                 f"background:{color}'></div>"
                 f"<span class='meter-val'>{score:.0f}/100</span></div>"
                 f"{dev_html}"
+                f"{drift_html}"
                 "</div>"
             )
 
@@ -388,6 +392,78 @@ class DashboardBuilder:
             return ("<p class='muted'>No sessions scanned yet — "
                     "run Own or Live monitoring.</p>")
         return "<div class='mlgrid'>" + "".join(cards) + "</div>"
+
+    def _drift_html(self, username, drift, history=None):
+        """Longer-horizon drift/trend row for a session: how the user's
+        RECENT sessions differ from their earlier ones (from the rolling
+        history). Informational — it never changes the verdict; it tells
+        the analyst a slow shift is under way. Each pill is clickable and
+        opens the SAME detail pop-up as the deviation chips (what it means,
+        recent vs earlier, the trend sparkline, why it can point to an
+        attack). Security-relevant drifts are highlighted."""
+        items = [d for d in drift if d and d.get("text")]
+        if not items:
+            return ""
+        pills = "".join(self._drift_pill(username, d, history) for d in items)
+        return (
+            "<div class='drift'>"
+            "<span class='drift-label' title='How recent sessions compare "
+            "with earlier ones for this user — a slow shift that per-session "
+            "scoring can miss'>&#8599; Longer-horizon drift "
+            "(click for details):</span>"
+            + pills + "</div>"
+        )
+
+    def _drift_pill(self, username, d, history=None):
+        """One clickable drift pill, wired to the shared showDev() pop-up."""
+        label = (d.get("label") or "").lower().strip()
+        direction = "higher than" if d.get("z", 0) >= 0 else "lower than"
+
+        meaning = ("Longer-horizon trend. "
+                   + BEHAVIOR_MEANINGS.get(
+                       label, "A behavioural measure of this user."))
+        attack = BEHAVIOR_ATTACK.get(
+            label, "A steady drift away from a person's own past behaviour "
+                   "is a classic slow-burn insider / account-takeover sign.")
+
+        value = str(d.get("recent", ""))
+        usual = str(d.get("baseline", ""))
+
+        # Recent history for THIS feature, so the pop-up sparkline shows the
+        # actual slope the drift is measuring.
+        feature = d.get("feature")
+        series = feature_series(history or {}, username, feature) \
+            if feature else []
+        hist_json = json.dumps(series)
+
+        sd = abs(float(d.get("z", 0) or 0))
+        if sd >= 6:
+            sd_note = (f"Over the recent window this sits about {sd:.0f} times "
+                       f"further from the user's own earlier average "
+                       f"({direction} it) than their normal day-to-day wobble "
+                       f"— a pronounced, sustained shift.")
+        elif sd >= 3:
+            sd_note = (f"Over the recent window this is roughly {sd:.0f} times "
+                       f"the user's usual day-to-day wobble ({direction} their "
+                       f"earlier average) — a real, sustained drift worth "
+                       f"watching.")
+        else:
+            sd_note = (f"A mild but consistent drift ({direction} the user's "
+                       f"earlier average) — noted, not alarming on its own.")
+
+        cls = "dpill sec" if d.get("security") else "dpill"
+        return (
+            f"<span class='{cls}' onclick='showDev(this)' tabindex='0'"
+            f" data-user=\"{self._attr(username)}\""
+            f" data-text=\"{self._attr(d.get('text'))}\""
+            f" data-meaning=\"{self._attr(meaning)}\""
+            f" data-attack=\"{self._attr(attack)}\""
+            f" data-value=\"{self._attr(value)}\""
+            f" data-usual=\"{self._attr(usual)}\""
+            f" data-hist=\"{self._attr(hist_json)}\""
+            f" data-sd=\"{self._attr(sd_note)}\">"
+            f"{self._esc(d.get('text'))}</span>"
+        )
 
     @staticmethod
     def _attr(value):
@@ -677,6 +753,32 @@ class DashboardBuilder:
     .bchip {{ background: #2d2a44 !important; color: #b9a9ff !important; }}
     .bchip:hover, .bchip:focus {{ background: #6c5ce7 !important;
       color: #fff !important; }} }}
+  .drift {{ margin-top: .55rem; padding-top: .5rem;
+    border-top: 1px dashed #e2e5ec; }}
+  .drift-label {{ color: #b45309; font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; display: block; margin-bottom: .3rem;
+    cursor: help; }}
+  .dpill {{ display: inline-block; font-size: .76rem; background: #fef3c7;
+    color: #92400e; border-radius: 5px; padding: .12rem .45rem;
+    margin: .15rem .25rem .15rem 0; border: 1px solid #fde68a;
+    cursor: pointer; transition: all .12s; }}
+  .dpill:hover, .dpill:focus {{ background: #d97706; color: #fff;
+    border-color: #d97706; outline: none; }}
+  .dpill.sec {{ background: #fee2e2; color: #991b1b;
+    border-color: #fecaca; font-weight: 600; }}
+  .dpill.sec:hover, .dpill.sec:focus {{ background: #b91c1c; color: #fff;
+    border-color: #b91c1c; outline: none; }}
+  @media (prefers-color-scheme: dark) {{
+    .drift {{ border-top-color: #333a45; }}
+    .drift-label {{ color: #f59e0b; }}
+    .dpill {{ background: #3a2f18 !important; color: #fcd34d !important;
+      border-color: #5c4a1f !important; }}
+    .dpill:hover, .dpill:focus {{ background: #d97706 !important;
+      color: #fff !important; }}
+    .dpill.sec {{ background: #3a1f1f !important; color: #fca5a5 !important;
+      border-color: #5c2626 !important; }}
+    .dpill.sec:hover, .dpill.sec:focus {{ background: #b91c1c !important;
+      color: #fff !important; }} }}
   .modal {{ display: none; position: fixed; inset: 0; z-index: 50;
     background: rgba(17,20,26,.55); align-items: center;
     justify-content: center; padding: 1rem; }}
@@ -834,7 +936,7 @@ class DashboardBuilder:
     document.addEventListener('keydown', function (e) {{
       if (e.key === 'Escape') hideDev();
     }});
-    document.querySelectorAll('.bchip').forEach(function (c) {{
+    document.querySelectorAll('.bchip, .dpill').forEach(function (c) {{
       c.addEventListener('keydown', function (e) {{
         if (e.key === 'Enter' || e.key === ' ') {{ e.preventDefault(); showDev(c); }}
       }});

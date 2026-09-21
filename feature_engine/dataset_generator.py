@@ -53,6 +53,8 @@ class DatasetGenerator:
         "port_scan",
         "malicious_ip_contact",
         "data_exfiltration",
+        "c2_beaconing",
+        "dns_tunneling",
         "siem_alert",
     ]
 

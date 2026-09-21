@@ -1,0 +1,514 @@
+<title>Viva Defense Kit</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --ground:#f5f7fb; --surface:#ffffff; --surface-2:#eef1f8; --raise:#e7ebf5;
+  --ink:#151a26; --strong:#0a0e18; --muted:#586176; --faint:#8b93a6;
+  --line:#dde3ee; --line-strong:#c7cfde;
+  --accent:#2743b3; --accent-2:#6d4bd6; --accent-soft:#e7ebfa;
+  --safe:#15784a; --safe-bg:#e4f4ec;
+  --review:#9a6512; --review-bg:#f9efd9;
+  --critical:#b32d20; --critical-bg:#fbe6e2;
+  --shadow:0 1px 2px rgba(20,30,60,.04),0 6px 20px rgba(20,30,60,.06);
+}
+:root:not([data-theme="light"]){ @media (prefers-color-scheme: dark){
+  --ground:#0c0f15; --surface:#141a24; --surface-2:#1a212e; --raise:#212a3a;
+  --ink:#e6eaf3; --strong:#f5f8ff; --muted:#98a2b6; --faint:#6b7488;
+  --line:#26303f; --line-strong:#33405400; --line-strong:#334054;
+  --accent:#8098ff; --accent-2:#b39bff; --accent-soft:#1e2740;
+  --safe:#43d08e; --safe-bg:#12291e;
+  --review:#e6ad46; --review-bg:#2c2410;
+  --critical:#ff6f61; --critical-bg:#301613;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --ground:#0c0f15; --surface:#141a24; --surface-2:#1a212e; --raise:#212a3a;
+  --ink:#e6eaf3; --strong:#f5f8ff; --muted:#98a2b6; --faint:#6b7488;
+  --line:#26303f; --line-strong:#334054;
+  --accent:#8098ff; --accent-2:#b39bff; --accent-soft:#1e2740;
+  --safe:#43d08e; --safe-bg:#12291e;
+  --review:#e6ad46; --review-bg:#2c2410;
+  --critical:#ff6f61; --critical-bg:#301613;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:74px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:940px;margin:0 auto;padding:0 22px}
+h1,h2,h3{text-wrap:balance;line-height:1.2;color:var(--strong);font-weight:600}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-ligatures:none}
+a{color:var(--accent);text-decoration:none}
+
+/* ---- top nav ---- */
+.nav{
+  position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--ground) 88%,transparent);
+  backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+}
+.nav .wrap{display:flex;align-items:center;gap:6px;height:56px;flex-wrap:wrap}
+.nav .brand{font-weight:700;font-size:.86rem;letter-spacing:.02em;margin-right:auto;color:var(--strong)}
+.nav .brand span{color:var(--accent)}
+.nav a{
+  font-size:.78rem;font-weight:500;color:var(--muted);padding:6px 11px;border-radius:7px;
+  font-family:"IBM Plex Mono",monospace;letter-spacing:.01em;
+}
+.nav a:hover{background:var(--surface-2);color:var(--ink)}
+
+/* ---- hero ---- */
+.hero{padding:52px 0 30px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;font-size:.72rem;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--accent);margin:0 0 14px
+}
+.hero h1{font-size:2.55rem;margin:0 0 12px;letter-spacing:-.015em}
+.hero p.lead{font-size:1.08rem;color:var(--muted);max-width:64ch;margin:0}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:30px 0 8px}
+.stat{
+  background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:18px 18px 16px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden
+}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent)}
+.stat .n{font-family:"IBM Plex Mono",monospace;font-size:1.9rem;font-weight:600;color:var(--strong);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.stat .k{font-size:.82rem;color:var(--muted);margin-top:2px}
+.stat .sub{font-size:.72rem;color:var(--faint);margin-top:6px;font-family:"IBM Plex Mono",monospace}
+
+/* ---- sections ---- */
+section{padding:34px 0;border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin:0 0 20px}
+.sec-head .num{font-family:"IBM Plex Mono",monospace;font-size:.8rem;color:var(--accent);font-weight:600}
+.sec-head h2{font-size:1.5rem;margin:0;letter-spacing:-.01em}
+.sec-head .note{margin-left:auto;font-size:.78rem;color:var(--faint);font-family:"IBM Plex Mono",monospace}
+
+/* callout / pitch */
+.pitch{
+  background:linear-gradient(180deg,var(--accent-soft),transparent 90%);
+  border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:12px;padding:22px 24px;font-size:1.06rem;line-height:1.7
+}
+.pitch b{color:var(--strong);font-weight:600}
+.pitch .mono{color:var(--accent);font-weight:500}
+
+/* slides */
+.slide{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow)
+}
+.slide .st{display:flex;align-items:center;gap:11px;margin-bottom:9px}
+.slide .idx{
+  font-family:"IBM Plex Mono",monospace;font-size:.74rem;font-weight:600;color:var(--surface);
+  background:var(--accent);border-radius:6px;padding:2px 8px;flex:none
+}
+.slide h3{font-size:1.06rem;margin:0}
+.slide ul{margin:4px 0 10px;padding-left:20px}
+.slide li{margin:3px 0;color:var(--ink)}
+.say{
+  font-size:.86rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:9px;margin-top:2px
+}
+.say b{color:var(--accent);font-weight:600;font-family:"IBM Plex Mono",monospace;font-size:.76rem;letter-spacing:.04em;text-transform:uppercase}
+
+/* Q&A */
+.qa{display:flex;flex-direction:column;gap:12px}
+.q{
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:16px 18px;box-shadow:var(--shadow)
+}
+.q .chip{
+  display:inline-block;font-family:"IBM Plex Mono",monospace;font-size:.68rem;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:20px;margin-bottom:9px
+}
+.chip.trap{color:var(--critical);background:var(--critical-bg)}
+.chip.tech{color:var(--accent);background:var(--accent-soft)}
+.chip.honest{color:var(--safe);background:var(--safe-bg)}
+.chip.scope{color:var(--review);background:var(--review-bg)}
+.q .ask{font-weight:600;color:var(--strong);font-size:1.02rem;margin:0 0 8px}
+.q .ans{color:var(--ink);margin:0 0 10px}
+.q .one{
+  font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:9px 12px;
+  border-left:2px solid var(--accent);color:var(--ink)
+}
+.q .one b{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:2px}
+
+/* demo terminal */
+.term{
+  background:var(--strong);border-radius:12px;overflow:hidden;border:1px solid var(--line-strong);
+  box-shadow:var(--shadow);margin-bottom:8px
+}
+:root[data-theme="dark"] .term,:root:not([data-theme="light"]) .term{background:#0a0d13}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]) .term{background:#0f1420}}
+.term .bar{display:flex;gap:7px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.term .bar i{width:11px;height:11px;border-radius:50%;display:block}
+.term .bar i:nth-child(1){background:#ff5f57}.term .bar i:nth-child(2){background:#febc2e}.term .bar i:nth-child(3){background:#28c840}
+.term pre{margin:0;padding:15px 16px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:.82rem;line-height:1.75;color:#c8d3e6}
+.term .c{color:#7fe3a3}    /* command */
+.term .p{color:#5aa9ff}    /* prompt/path */
+.term .o{color:#8b97ad}    /* output/comment */
+.term .h{color:#ffd166}    /* highlight */
+
+.step{display:flex;gap:14px;margin-bottom:16px;align-items:flex-start}
+.step .no{
+  font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:.8rem;color:var(--surface);
+  background:var(--accent-2);width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;margin-top:2px
+}
+.step .b h3{font-size:1rem;margin:0 0 3px}
+.step .b p{margin:0 0 8px;color:var(--muted);font-size:.92rem}
+.watch{font-size:.85rem;color:var(--safe);font-weight:500}
+.watch::before{content:"→ watch for: ";color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:.72rem}
+
+/* tables */
+.tbl{border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+th{background:var(--surface-2);font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;font-family:"IBM Plex Mono",monospace}
+tr:last-child td{border-bottom:0}
+td.n,th.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;color:var(--strong);white-space:nowrap}
+tbody tr:hover td{background:var(--surface)}
+.trust td:first-child{border-left:2px solid var(--safe)}
+
+/* weak spots */
+.warn{
+  background:var(--critical-bg);border:1px solid color-mix(in srgb,var(--critical) 30%,transparent);
+  border-radius:12px;padding:16px 20px
+}
+.warn h3{color:var(--critical);font-size:.95rem;margin:0 0 8px;font-family:"IBM Plex Mono",monospace;letter-spacing:.02em}
+.warn ul{margin:0;padding-left:18px}
+.warn li{margin:5px 0;font-size:.92rem}
+.warn code{background:color-mix(in srgb,var(--critical) 12%,transparent);padding:1px 5px;border-radius:4px;font-size:.84rem}
+
+.foot{padding:30px 0 60px;color:var(--faint);font-size:.8rem;font-family:"IBM Plex Mono",monospace;text-align:center}
+
+@media (max-width:680px){
+  .hero h1{font-size:2rem}.stats{grid-template-columns:1fr}
+  .nav .brand{width:100%;margin-bottom:2px}.hero{padding:34px 0 20px}
+}
+@media print{
+  .nav{display:none}.stat,.slide,.q,.term,.tbl{break-inside:avoid;box-shadow:none}
+  body{background:#fff}section{border-top:1px solid #ccc}
+}
+</style>
+
+<nav class="nav"><div class="wrap">
+  <div class="brand">bads · <span>Viva Kit</span></div>
+  <a href="#pitch">pitch</a>
+  <a href="#slides">slides</a>
+  <a href="#qa">Q&amp;A</a>
+  <a href="#demo">demo</a>
+  <a href="#numbers">numbers</a>
+  <a href="#fix">fix-first</a>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">PMICS Thesis Defense · University of Dhaka</p>
+  <h1>Hybrid SIEM &amp; Behavioral Anomaly Detection</h1>
+  <p class="lead">Everything you need to walk into the viva with the answer already loaded — the pitch, a slide skeleton, the trap questions, a live demo script, and every number worth memorizing. Three sources of truth are printed everywhere on this page.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="n">99.3%</div><div class="k">Real recorded attacks caught</div><div class="sub">136 / 137 EVTX</div></div>
+    <div class="stat"><div class="n">0.944</div><div class="k">NSL-KDD ROC-AUC</div><div class="sub">~22.5k netflows</div></div>
+    <div class="stat"><div class="n">0.81</div><div class="k">CERT r4.2 ROC-AUC</div><div class="sub">1,000 real users</div></div>
+  </div>
+</div></header>
+
+<main class="wrap">
+
+<!-- ================= PITCH ================= -->
+<section id="pitch">
+  <div class="sec-head"><span class="num">01</span><h2>The 60-second pitch</h2><span class="note">memorize this</span></div>
+  <div class="pitch">
+    Rule-based SIEM and IDS catch <b>known</b> attacks well, but they miss the rare, quiet ones —
+    <b>U2R and R2L</b> — whose evidence looks almost like normal activity. Our framework fuses
+    <b>three independent viewpoints</b> — host telemetry (Windows/Ubuntu/macOS), network alerts
+    (<span class="mono">Suricata</span>), and SIEM alerts (<span class="mono">Wazuh</span>) — into one OS-independent pipeline.
+    Every session is judged <b>three ways</b>: context-aware rules, multi-stage
+    <b>cross-plane correlation</b> that only fires when two planes agree, and a lightweight
+    <b>Isolation Forest</b> that learns each machine's normal across <b>18 behavioral features</b>.
+    Every finding is mapped to <b>MITRE ATT&amp;CK</b> and explained, not left as a score.
+    It catches <b>99.3%</b> of real recorded attacks, scores <b>0.944</b> on NSL-KDD and
+    <b>0.81</b> over 330k real CERT sessions — and the benchmark's own weakness on R2L/U2R is
+    exactly <i>why</i> we add the host, SIEM and correlation layers on top.
+  </div>
+</section>
+
+<!-- ================= SLIDES ================= -->
+<section id="slides">
+  <div class="sec-head"><span class="num">02</span><h2>Slide skeleton</h2><span class="note">11 slides · ~12 min</span></div>
+
+  <div class="slide"><div class="st"><span class="idx">01</span><h3>Title &amp; team</h3></div>
+    <ul><li>Title, both names + roll, supervisor &amp; co-supervisor, PMICS · University of Dhaka.</li></ul>
+    <div class="say"><b>say</b> "Good morning — our project is a hybrid, cross-platform intrusion-detection framework targeting the rare U2R and R2L attack classes."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">02</span><h3>The problem</h3></div>
+    <ul><li>U2R (user → root) and R2L (remote → local) are rare and look like normal activity.</li><li>Rule-based SIEM/IDS = high false-negatives on unseen behavior.</li><li>Network-only anomaly detection is weak on exactly these classes.</li></ul>
+    <div class="say"><b>say</b> "Signatures only know yesterday's attacks; a single sensor rarely sees the whole attack."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">03</span><h3>Research gap</h3></div>
+    <ul><li>No prior work combines <b>Wazuh + Suricata + Isolation Forest + MITRE + cross-platform host</b> in one lightweight tool for U2R/R2L.</li><li>Closest work is single-plane, or supervised (needs labelled attacks).</li></ul>
+    <div class="say"><b>say</b> "Our contribution is architectural, not a new algorithm — it's how established parts are combined."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">04</span><h3>Architecture — Figure 3.1</h3></div>
+    <ul><li>3 planes → normalize to a common <span class="mono">Event</span> → context-aware detectors → 18-feature vector.</li><li>Judged by 3 engines: Rule/Risk · Correlation · Isolation Forest → Decision engine → alert + dashboard.</li></ul>
+    <div class="say"><b>say</b> "One OS-independent pipeline; Wazuh and Suricata stay their own detectors, we add reasoning on top."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">05</span><h3>18 behavioral features</h3></div>
+    <ul><li>5 timing · 4 intensity/volume · 3 style/variety · 3 authentication · 3 device/network.</li><li>Each answers a distinct question; all live-collectable on a real endpoint.</li></ul>
+    <div class="say"><b>say</b> "The model detects 'unlike <i>this</i> user', not 'unlike some average user'."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">06</span><h3>Why Isolation Forest</h3></div>
+    <ul><li>Unsupervised — no labelled attacks needed (they're rare by definition).</li><li>Sub-linear, lightweight; fits "few &amp; different" anomalies. 300 trees, standardized, per-user.</li></ul>
+    <div class="say"><b>say</b> "It isolates an odd session in a couple of random cuts; a normal one takes many."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">07</span><h3>Cross-plane correlation — the contribution</h3></div>
+    <ul><li>A chain fires only when <b>two independent planes agree</b>.</li><li>Host obfuscated command <b>+</b> network C2 contact = <b>Confirmed C2 [CRITICAL, T1071]</b>.</li><li>Network scan <b>+</b> host logon failures = <b>Confirmed R2L intrusion</b>.</li></ul>
+    <div class="say"><b>say</b> "Neither observation is conclusive alone; agreement is what earns a CRITICAL verdict."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">08</span><h3>Live demo</h3></div>
+    <ul><li>Analyze mode → Rahim CRITICAL, 11 chains (all 4 cross-plane).</li><li>Own mode on the Ubuntu VM → real host + <b>live Suricata</b> network indicator.</li><li>Explainable dashboard: anomaly meter + which behaviors deviated (in σ).</li></ul>
+    <div class="say"><b>say</b> "This is live on the VM — Suricata's real eve.json feeding the pipeline." (See <a href="#demo">demo script</a>.)</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">09</span><h3>Results</h3></div>
+    <ul><li>Real attacks (EVTX): <b>136/137 = 99.3%</b>.</li><li>NSL-KDD: ROC <b>0.944</b> — DoS 92.4, Probe 99.9, R2L 44.9, U2R 73.1.</li><li>CERT r4.2 (1,000 real users): ROC <b>0.81</b>, <b>89%</b> of insiders in the top-10% reviewed.</li></ul>
+    <div class="say"><b>say</b> "The three numbers to trust are 99.3%, 0.944 and 0.81 — the sample demo is a demonstration, not a claim."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">10</span><h3>Honest limitations</h3></div>
+    <ul><li>Netflow-only R2L/U2R is weak — a genuine ceiling, and the motivation for the extra layers.</li><li>Detection depends on telemetry richness (the 1 missed EVTX had almost no evidence).</li></ul>
+    <div class="say"><b>say</b> "We state the weak spots plainly — that honesty is part of the contribution."</div>
+  </div>
+
+  <div class="slide"><div class="st"><span class="idx">11</span><h3>Conclusion &amp; future work</h3></div>
+    <ul><li>Hybrid, explainable, deployable; improves rare-attack coverage while keeping false alarms low.</li><li>Next: live Suricata/Wazuh at scale, e-mail/web features (CERT-motivated), drift detection.</li></ul>
+    <div class="say"><b>say</b> "Thank you — happy to take questions or run the live demo."</div>
+  </div>
+</section>
+
+<!-- ================= Q&A ================= -->
+<section id="qa">
+  <div class="sec-head"><span class="num">03</span><h2>Question &amp; answer defense</h2><span class="note">the ones they will ask</span></div>
+  <div class="qa">
+
+    <div class="q"><span class="chip trap">trap</span>
+      <p class="ask">Model Performance looks almost perfect — is that real?</p>
+      <p class="ans">Those metrics come from a 234-session held-out set: <b>97 synthetic normal + 137 REAL EVTX attacks</b>. The attack side is genuine recorded attacks the model never trained on — 99% caught. I openly say the <i>normal</i> side is synthetic; that's why we also ran CERT with 1,000 real users.</p>
+      <p class="one"><b>one-liner</b>The trustworthy figure there is 99% recall on <i>real</i> attacks; the normal side is synthetic and I say so.</p>
+    </div>
+
+    <div class="q"><span class="chip trap">trap</span>
+      <p class="ask">The 100-user sample demo is near-perfect — isn't that overfitting / cheating?</p>
+      <p class="ans">It's a <b>reproducible demonstration</b> on clean synthetic data — its job is to show the pipeline works end-to-end (Rahim CRITICAL, 96 clear). Being near-perfect is expected. I never present it as a performance claim; real performance is EVTX, NSL-KDD and CERT.</p>
+      <p class="one"><b>one-liner</b>Demo = "does it work"; benchmarks = "how well". Two different questions.</p>
+    </div>
+
+    <div class="q"><span class="chip honest">honest metric</span>
+      <p class="ask">CERT accuracy is 97% — that's excellent, right?</p>
+      <p class="ans">No — on CERT, malicious days are only <b>1.5%</b> of the data, so accuracy is misleading (calling everything "normal" already scores 98.5%). The honest metrics for rare positives are <b>ROC-AUC 0.81</b> and <b>per-insider detection: 89% at a 10% review budget, 97% at 20%</b>.</p>
+      <p class="one"><b>one-liner</b>Accuracy and F1 mislead on 1.5%-rare data; I report ROC-AUC and detection-at-budget instead.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">Why Isolation Forest and not deep learning (CNN/LSTM)?</p>
+      <p class="ans">Three reasons: it needs <b>no labelled attacks</b> (U2R/R2L are rare on any real machine); it's <b>sub-linear and lightweight</b> enough to run continuously on an ordinary endpoint; and it's built for the "few and different" profile of a rare-attack session. Lv &amp; Ding's CNN+LSTM is heavier and needs labelled data.</p>
+      <p class="one"><b>one-liner</b>Label-free, lightweight, and matched to how rare attacks actually look.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">Isolation Forest is old — what's your novelty?</p>
+      <p class="ans">The contribution is <b>architectural, not algorithmic</b>. No prior work combines Wazuh + Suricata + Isolation Forest + MITRE + cross-platform host telemetry + cross-plane correlation in one lightweight framework aimed at U2R/R2L. The novelty is the <b>fusion and the cross-plane correlation</b>, not the classifier.</p>
+      <p class="one"><b>one-liner</b>We don't claim a new algorithm — we claim a new, honest way of combining established ones.</p>
+    </div>
+
+    <div class="q"><span class="chip honest">honest limit</span>
+      <p class="ask">Why is R2L only 44.9% on NSL-KDD?</p>
+      <p class="ans">At the network-flow level, most test R2L attacks are <b>novel types that look identical to normal traffic</b> — there's no signal to separate. It's a genuine unsupervised ceiling, not a tuning failure. This is precisely the empirical evidence that motivates adding host, SIEM and correlation layers.</p>
+      <p class="one"><b>one-liner</b>That low number <i>is</i> my argument for the multi-layer design — I use it, I don't hide it.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">What exactly is cross-plane correlation?</p>
+      <p class="ans">A correlation chain that fires <b>only when two independent telemetry planes agree</b>. Example: an obfuscated PowerShell command (host) plus contact with a known-malicious address (network) becomes a <b>Confirmed C2 channel [CRITICAL]</b> — a conclusion neither plane can reach alone. It raises confidence and cuts false positives.</p>
+      <p class="one"><b>one-liner</b>Two independent viewpoints agreeing is stronger evidence than either alone.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">How do you keep false positives down?</p>
+      <p class="ans">An <b>allowlist</b> drops the tool's own and operator-approved activity first; a <b>two-tier risk model</b> separates "behaving differently" (low weight) from "genuinely dangerous" (high weight); and correlation requires agreement before a CRITICAL verdict. A change of routine gets noticed, not accused.</p>
+      <p class="one"><b>one-liner</b>Deviation earns a look; a dangerous action earns an alert — they're weighted differently.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">Why a per-user model instead of one global model?</p>
+      <p class="ans">A 2 a.m. logon is perfectly normal for a night-shift admin but a red flag for a nine-to-five worker. A single shared model can't make that distinction; a per-user baseline learns "unlike this user".</p>
+      <p class="one"><b>one-liner</b>Normal is personal — the baseline has to be too.</p>
+    </div>
+
+    <div class="q"><span class="chip tech">technical</span>
+      <p class="ask">Couldn't an attacker slowly poison the baseline?</p>
+      <p class="ans">We separate <b>learning from monitoring</b>: a dedicated learn step establishes the baseline; watch mode monitors against the <i>already-learned</i> baseline instead of retraining on whatever it sees. Attack sessions are never fed to the model as normal.</p>
+      <p class="one"><b>one-liner</b>The baseline is established deliberately, not silently updated from live traffic.</p>
+    </div>
+
+    <div class="q"><span class="chip scope">scope</span>
+      <p class="ask">Does it actually run live with Wazuh and Suricata?</p>
+      <p class="ans">Yes — demonstrated on an Ubuntu VM. Suricata's live <span class="mono">eve.json</span> is ingested through <span class="mono">config/sensors.local.conf</span>; a generated network alert surfaces as a network indicator in <span class="mono">own</span> mode, and cross-plane chains fire when host evidence is present too. It also runs host-only if the sensors are absent.</p>
+      <p class="one"><b>one-liner</b>Live-validated on a real VM; sensors are optional, not required.</p>
+    </div>
+
+    <div class="q"><span class="chip scope">scope</span>
+      <p class="ask">Why did per-day CERT detection stay modest?</p>
+      <p class="ans">Genuine insiders behave normally on <i>most</i> days, so per-<i>day</i> detection is inherently modest — but per-<i>insider</i> we catch 89% at a 10% review budget. We used only CERT's logon/file/USB signals; e-mail and web features (which CERT also contains) would lift it further and are named as future work.</p>
+      <p class="one"><b>one-liner</b>You only need to catch an insider once — per-insider we get 89–97%.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================= DEMO ================= -->
+<section id="demo">
+  <div class="sec-head"><span class="num">04</span><h2>Live demo script</h2><span class="note">Ubuntu VM · run in order</span></div>
+
+  <div class="step"><span class="no">1</span><div class="b">
+    <h3>Confirm Suricata is live, then generate a network alert</h3>
+    <p>Prove the network plane is real, not a recording.</p>
+    <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="p">$</span> <span class="c">sudo systemctl is-active suricata</span>
+<span class="o">active</span>
+<span class="p">$</span> <span class="c">ping -c 5 192.168.92.2</span>            <span class="o"># custom ICMP rule → alert</span>
+<span class="p">$</span> <span class="c">sudo grep 'BADS-TEST' /var/log/suricata/eve.json | tail -1</span>
+<span class="o">{"event_type":"alert", ... "signature":"</span><span class="h">ET SCAN BADS-TEST ping</span><span class="o">" ...}</span></pre></div>
+    <p class="watch">a fresh <code>alert</code> line with today's timestamp in eve.json.</p>
+  </div></div>
+
+  <div class="step"><span class="no">2</span><div class="b">
+    <h3>Analyze mode — the reproducible attack</h3>
+    <p>Show the full pipeline and every correlation chain firing on the planted attacker.</p>
+    <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="p">$</span> <span class="c">python bads.py analyze</span>
+<span class="o">===== Rahim =====</span>
+Risk Score : <span class="h">680  (HIGH)</span>
+ML         : ANOMALY (anomaly score 74/100)
+Decision   : <span class="h">CRITICAL</span>
+Correlations:
+  - Confirmed C2 Channel (Host + Network)     <span class="h">[CRITICAL]</span>
+  - Scan + Brute Force (Host + Network R2L)   <span class="h">[CRITICAL]</span>
+  - Privilege Escalation After Login (U2R)    <span class="h">[CRITICAL]</span>
+  <span class="o">... 11 chains, all 4 cross-plane ones firing</span>
+Monitored 100 users — 4 flagged, 96 clear.</pre></div>
+    <p class="watch">Rahim = CRITICAL with cross-plane chains; the other 96 stay clear.</p>
+  </div></div>
+
+  <div class="step"><span class="no">3</span><div class="b">
+    <h3>Own mode — live host + live Suricata</h3>
+    <p>The key moment: real Linux users scanned, and the live eve.json alert appears as a network indicator.</p>
+    <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="p">$</span> <span class="c">sudo venv/bin/python bads.py own</span>
+<span class="o">===== root =====</span>
+Reasons:
+  - <span class="h">Network IDS signature alert (Suricata)</span>   <span class="o"># ← live eve.json</span>
+<span class="o">===== ubuntu =====</span>
+  - <span class="h">Network scanning activity</span></pre></div>
+    <p class="watch">a Suricata-sourced network reason under a real host user — that's live ingestion.</p>
+  </div></div>
+
+  <div class="step"><span class="no">4</span><div class="b">
+    <h3>Open the dashboard from your laptop</h3>
+    <p>The VM is headless, so serve the page and open it in the host browser.</p>
+    <div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="p">$</span> <span class="c">cd reports &amp;&amp; python3 -m http.server 8080</span>
+<span class="o"># laptop browser:</span>  <span class="h">http://192.168.92.136:8080/dashboard.html</span></pre></div>
+    <p class="watch">18-feature anomaly cards, each deviation shown in σ, plus the CERT real-scale panel.</p>
+  </div></div>
+
+  <div class="step"><span class="no">5</span><div class="b">
+    <h3>Fallback if anything misbehaves</h3>
+    <p>Have <span class="mono">docs/Project-Report.pdf</span> open at Chapter 5 with the screenshots (Figures 5.2–5.13). Every figure in the report is real output — you can defend from the PDF alone if the VM fails.</p>
+  </div></div>
+</section>
+
+<!-- ================= NUMBERS ================= -->
+<section id="numbers">
+  <div class="sec-head"><span class="num">05</span><h2>Numbers &amp; facts to memorize</h2><span class="note">tabular · exact</span></div>
+
+  <h3 style="font-size:1rem;margin:0 0 10px;color:var(--muted)">The three you must never get wrong</h3>
+  <div class="tbl scroll"><table class="trust"><thead><tr><th>Benchmark</th><th class="n">Headline</th><th>Data — is it real?</th></tr></thead><tbody>
+    <tr><td>EVTX-ATTACK-SAMPLES</td><td class="n">99.3% (136/137)</td><td>🟢 real recorded Windows attacks</td></tr>
+    <tr><td>NSL-KDD (KDDTest+)</td><td class="n">ROC 0.944</td><td>🟢 real-ish public benchmark, ~22.5k flows</td></tr>
+    <tr><td>CERT r4.2 insider</td><td class="n">ROC 0.81</td><td>🟡 1,000 realistic users, 330k sessions</td></tr>
+  </tbody></table></div>
+
+  <h3 style="font-size:1rem;margin:22px 0 10px;color:var(--muted)">NSL-KDD per-class (the R2L/U2R story)</h3>
+  <div class="tbl scroll"><table><thead><tr><th>Class</th><th class="n">Detection</th><th>Meaning</th></tr></thead><tbody>
+    <tr><td>DoS</td><td class="n">92.4%</td><td>noisy → easy for netflow anomaly</td></tr>
+    <tr><td>Probe</td><td class="n">99.9%</td><td>noisy → easy</td></tr>
+    <tr><td>U2R</td><td class="n">73.1%</td><td>rare, subtle</td></tr>
+    <tr><td>R2L</td><td class="n">44.9%</td><td>rare + novel → the ceiling that justifies the extra layers</td></tr>
+  </tbody></table></div>
+
+  <h3 style="font-size:1rem;margin:22px 0 10px;color:var(--muted)">CERT &amp; held-out detail</h3>
+  <div class="tbl scroll"><table><thead><tr><th>Metric</th><th class="n">Value</th><th>Note</th></tr></thead><tbody>
+    <tr><td>CERT — insiders @ top 10%</td><td class="n">88.9% (64/72)</td><td>per-insider, review budget</td></tr>
+    <tr><td>CERT — insiders @ top 20%</td><td class="n">97.2% (70/72)</td><td>per-insider</td></tr>
+    <tr><td>CERT — malicious days @ top 20%</td><td class="n">64.0%</td><td>per-day (modest, expected)</td></tr>
+    <tr><td>CERT — sessions / malicious</td><td class="n">330,452 / 986</td><td>1.5% positives → accuracy misleads</td></tr>
+    <tr><td>Held-out set</td><td class="n">234</td><td>97 synthetic normal + 137 real attack</td></tr>
+    <tr><td>Held-out accuracy / recall</td><td class="n">0.88 / 99%</td><td>27 false positives, 1 miss</td></tr>
+  </tbody></table></div>
+
+  <h3 style="font-size:1rem;margin:22px 0 10px;color:var(--muted)">Model &amp; design facts</h3>
+  <div class="tbl scroll"><table><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody>
+    <tr><td>Algorithm</td><td>Isolation Forest, unsupervised, per-user</td></tr>
+    <tr><td>Trees / contamination / scaler</td><td class="mono">300 · 0.02 · StandardScaler</td></tr>
+    <tr><td>Features</td><td>18 (5 timing · 4 volume · 3 style · 3 auth · 3 device/network)</td></tr>
+    <tr><td>Anomaly score</td><td>0–100, decision boundary at 50</td></tr>
+    <tr><td>Verdicts</td><td class="mono">SAFE · REVIEW · SUSPICIOUS · CRITICAL</td></tr>
+    <tr><td>Sample demo</td><td>100 users → 96 clear · 1 CRITICAL · 3 REVIEW; 11 chains (4 cross-plane)</td></tr>
+    <tr><td>MITRE examples</td><td class="mono">T1059.001 · T1110 · T1548 · T1071</td></tr>
+    <tr><td>Two models, never merged</td><td>sample (analyze) vs per-machine (own/live)</td></tr>
+  </tbody></table></div>
+</section>
+
+<!-- ================= FIX FIRST ================= -->
+<section id="fix">
+  <div class="sec-head"><span class="num">06</span><h2>Fix in the report before you print</h2><span class="note">so no one catches it first</span></div>
+  <div class="warn">
+    <h3>4 things a sharp examiner could spot</h3>
+    <ul>
+      <li><b>Section 2.7</b> still says <code>135 / 98.5%</code> — everywhere else is <code>136 / 99.3%</code>. One stale number.</li>
+      <li><b>CERT wording (5.2 &amp; Future Work):</b> "no e-mail or web logs" is wrong — CERT r4.2 <i>has</i> <code>email.csv</code> and <code>http.csv</code>; you simply didn't use them. Say "not incorporated", not "absent".</li>
+      <li><b>Appendix B</b> says <code>fifteen-feature</code> — should be <b>eighteen</b> (leftover from the 15→18 change).</li>
+      <li><b>Reference [2]</b> (Alboushy, <code>arXiv:2605.13337, 2026</code>) looks implausible — verify it exists, and sanity-check every citation.</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<p class="foot">bads · Behavior Anomaly Detection System — viva kit · print me &amp; keep me in the room</p>
+
+<script>
+// smooth active-nav highlight (progressive enhancement, motion-safe)
+(function(){
+  var links=[].slice.call(document.querySelectorAll('.nav a'));
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+  var obs=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      var a=map[e.target.id];if(!a)return;
+      if(e.isIntersecting){links.forEach(function(l){l.style.color='';l.style.background='';});
+        a.style.color='var(--accent)';a.style.background='var(--surface-2)';}
+    });
+  },{rootMargin:'-45% 0px -50% 0px'});
+  document.querySelectorAll('section[id]').forEach(function(s){obs.observe(s);});
+})();
+</script>

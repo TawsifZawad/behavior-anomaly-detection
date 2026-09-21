@@ -70,6 +70,8 @@ class RiskEngine:
         "port_scan":               (30, "Network scan detected on the wire"),
         "malicious_ip_contact":    (60, "Contact with a malicious / C2 host"),
         "data_exfiltration":       (50, "Large outbound transfer (possible exfiltration)"),
+        "c2_beaconing":            (60, "C2 beaconing - periodic callbacks to an external host"),
+        "dns_tunneling":           (60, "DNS tunnelling - data/command channel over DNS"),
 
         # SIEM plane (Wazuh)
         "siem_alert":              (30, "Wazuh SIEM rule alert"),

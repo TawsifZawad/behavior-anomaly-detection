@@ -756,13 +756,17 @@ h3("feature_vector.py — the list of numbers")
 p("Defines every feature the system measures and, crucially, two lists:")
 b("<b>ML_FEATURES</b> — everything recorded about a session (about "
   "fifty numbers), used as the spreadsheet columns.")
-b("<b>ML_MODEL_FEATURES</b> — the fifteen <i>behavioural</i> features "
-  "actually shown to the machine-learning model: when work starts and "
-  "ends, session length, off-hours share, weekend activity, intensity, "
-  "spread, program volume, file volume, program variety, work-style "
-  "balance, login failures, login attempts, USB use, and network "
-  "sources. Each asks a different question — none is a restatement of "
-  "another.")
+b("<b>ML_MODEL_FEATURES</b> — the eighteen <i>behavioural</i> features "
+  "actually shown to the machine-learning model, in five groups: "
+  "<b>timing</b> (login hour, logout hour, session length, off-hours "
+  "share, weekend activity); <b>intensity</b> (activity rate, active-hours "
+  "spread, program volume, file volume); <b>style</b> (program variety, "
+  "file-vs-process balance, file-type variety); <b>authentication</b> "
+  "(failed logins, login attempts, off-hours logins); and <b>device / "
+  "network</b> (USB use, removable-media activity, network sources). Each "
+  "asks a different question — none is a restatement of another. Every one "
+  "is collectable live on a real endpoint, so the same eighteen drive both "
+  "the benchmark and live monitoring.")
 p("Keeping these two lists in one file is why a new feature can never "
   "drift out of step between training, prediction and evaluation.")
 
@@ -871,6 +875,24 @@ p("Runs the same Isolation Forest method on NSL-KDD, the standard public "
   "published literature so the results can be compared. It reports the "
   "overall scores and — because they are this thesis's focus — the "
   "detection rate for each attack category separately.")
+
+h3("cert_train.py — learning normal from 1,000 real users")
+p("Reads the CERT r4.2 insider-threat dataset (Carnegie Mellon "
+  "University) — a realistic record of a thousand users' logon, file and "
+  "USB activity over months — turns each user-day into the eighteen-"
+  "feature vector, and trains an Isolation Forest on it. This lets the "
+  "model learn 'normal' from a large, realistic population rather than "
+  "only the synthetic demo users. It states honestly which features CERT "
+  "cannot fill (it has no process or authentication-failure logs).")
+
+h3("cert_eval.py — measuring detection on real insiders")
+p("Evaluates the behavioural model on CERT using the dataset's own answer "
+  "key: it labels every user-day that contains a real malicious event, "
+  "trains on normal days only, and tests on held-out normals plus every "
+  "malicious day. Because genuine insiders are only about 1.5% of the "
+  "data, it reports the fair measures for rare positives — the ROC area "
+  "and the share of insiders caught within a small review budget — rather "
+  "than a misleading raw accuracy.")
 
 h3("view_dataset.py, generate_code_doc.py, doc_content.py")
 p("Small helpers: print a dataset for inspection, and build this very "
